@@ -539,12 +539,12 @@ async function changeWord() {
   
   // Interval until next word change in this iframe.
   // Calculated for synchronization with other iframe (something.html).
-  const nextInterval = 2710;
+  const nextInterval = 3000;
   setTimeout(changeWord, nextInterval);
 }
 
 // Initial delay before first word change in this iframe.
 // "DESIGN" should change second, after "SOMETHING" and a pause.
-const initialInterval = 2880;
+const initialInterval = 3000;
 setTimeout(changeWord, initialInterval);
 </script>
