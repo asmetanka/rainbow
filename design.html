@@ -9,9 +9,9 @@ html, body {
 }
 
 #wrapper {
-  padding-top: 0; /* даёт гарантированный отступ сверху */
+  padding-top: 0; /* provides guaranteed top margin */
   box-sizing: border-box;
-  height: 100vh; /* растягиваем обёртку */
+  height: 100vh; /* stretch the wrapper */
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -103,27 +103,27 @@ const actionWords = [
   { text: "ENHANCE", color: "#1FC37E" }
 ];
 
-
 let currentWordIndex = 0;
 const container = document.querySelector('.hero-word-container');
-let lastLandedBridgeInfo = null; // Сохраняет информацию о последней "приземлившейся" общей букве { char: 'S', indexInCurrentWord: 3 }
+// Stores information about the last "landed" common letter { char: 'S', indexInCurrentWord: 3 }
+let lastLandedBridgeInfo = null;
 
 /**
- * Генерирует случайное число между min и max (включительно).
- * @param {number} min - Минимальное значение.
- * @param {number} max - Максимальное значение.
- * @returns {number} Случайное целое число.
+ * Generates a random number between min and max (inclusive).
+ * @param {number} min - Minimum value.
+ * @param {number} max - Maximum value.
+ * @returns {number} Random integer.
  */
 function getRandomInterval(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /**
- * Находит первую общую букву между двумя словами, исключая определенную букву в определенной позиции, если указано.
- * @param {string} word1 - Первое слово.
- * @param {string} word2 - Второе слово.
- * @param {null|{char: string, indexInCurrentWord: number}} excludedInfo - Информация об исключаемой букве (буква и ее индекс в word1).
- * @returns {null|{letter: string, positionInWord1: number, positionInWord2: number}} Объект с общей буквой и ее позициями или null.
+ * Finds the first common letter between two words, excluding a specific letter at a specific position if specified.
+ * @param {string} word1 - First word.
+ * @param {string} word2 - Second word.
+ * @param {null|{char: string, indexInCurrentWord: number}} excludedInfo - Information about the excluded letter (letter and its index in word1).
+ * @returns {null|{letter: string, positionInWord1: number, positionInWord2: number}} Object with common letter and its positions or null.
  */
 function findCommonLetters(word1, word2, excludedInfo = null) {
   const letters1 = word1.toLowerCase().split('');
@@ -140,7 +140,7 @@ function findCommonLetters(word1, word2, excludedInfo = null) {
       continue; // Skip this specific character at this specific position in word1
     }
 
-    // Исключаем пробелы и проверяем что буква есть во втором слове
+    // Exclude spaces and check if the letter exists in the second word
     if (charInWord1Lowercase !== ' ' && charInWord1Lowercase.trim() !== '' && letters2.includes(charInWord1Lowercase)) {
       const positionInWord2 = letters2.indexOf(charInWord1Lowercase);
       if (positionInWord2 !== -1) {
@@ -156,19 +156,17 @@ function findCommonLetters(word1, word2, excludedInfo = null) {
 }
 
 /**
- * Вычисляет позицию (смещение слева в пикселях) буквы в слове.
- * Используется для определения, куда должна "приземлиться" общая буква.
- * @param {string} word - Слово.
- * @param {number} letterIndex - Индекс буквы в слове.
- * @returns {number} Позиция буквы в пикселях.
+ * Calculates the position (left offset in pixels) of a letter in a word.
+ * Used to determine where the common letter should "land".
+ * @param {string} word - The word.
+ * @param {number} letterIndex - Index of the letter in the word.
+ * @returns {number} Position of the letter in pixels.
  */
 function calculateLetterPosition(word, letterIndex) {
   const tempSpan = document.createElement('span');
-  // Возвращаем более простой способ задания стилей, который был ранее
-  tempSpan.style.fontFamily = 'Anton, sans-serif'; // Или возьмем из CSS .hero-word-container если нужно
+  tempSpan.style.fontFamily = 'Anton, sans-serif';
   tempSpan.style.fontSize = '200px';
   tempSpan.style.letterSpacing = '-4px';
-  // tempSpan.style.fontWeight = computedStyle.fontWeight; // fontWeight не был критичен ранее
   tempSpan.style.whiteSpace = 'nowrap';
 
   tempSpan.style.visibility = 'hidden';
@@ -183,44 +181,44 @@ function calculateLetterPosition(word, letterIndex) {
 }
 
 /**
- * Выбирает случайное следующее слово для анимации.
- * Приоритет отдается словам с общей буквой (не той, что была общей в предыдущем переходе, если была).
- * Также избегает повторения цвета слова.
- * Предусмотрены фоллбэки, если подходящее слово с общей буквой не найдено.
- * @param {string} currentWordText - Текст текущего слова.
- * @param {string} excludeColor - Цвет текущего слова, который нужно избегать для следующего.
- * @param {null|{char: string, indexInCurrentWord: number}} excludedLetterInfoFromCurrentWord - Информация о букве, которая была мостом в *предыдущем* переходе (чтобы не использовать её снова как мост из текущего слова).
- * @returns {{word: {text: string, color: string}, commonInfo: null|{letter: string, positionInWord1: number, positionInWord2: number}}} Объект со следующим словом и информацией об общей букве (если есть).
+ * Selects a random next word for animation.
+ * Priority is given to words with a common letter (not the one that was common in the previous transition, if any).
+ * Also avoids repeating the word color.
+ * Fallbacks are provided if no suitable word with a common letter is found.
+ * @param {string} currentWordText - Text of the current word.
+ * @param {string} excludeColor - Color of the current word to avoid for the next one.
+ * @param {null|{char: string, indexInCurrentWord: number}} excludedLetterInfoFromCurrentWord - Information about the letter that was a bridge in the *previous* transition (to avoid using it again as a bridge from the current word).
+ * @returns {{word: {text: string, color: string}, commonInfo: null|{letter: string, positionInWord1: number, positionInWord2: number}}} Object with the next word and information about the common letter (if any).
  */
 function getRandomWordWithCommonLetter(currentWordText, excludeColor, excludedLetterInfoFromCurrentWord) {
-  const availableactionWordsAndInfos = [];
+  const availableWordsAndInfos = [];
   actionWords.forEach(wordObj => {
     if (wordObj.color !== excludeColor && wordObj.text !== currentWordText) {
       // Pass the excludedLetterInfoFromCurrentWord to findCommonLetters
       const commonInfo = findCommonLetters(currentWordText, wordObj.text, excludedLetterInfoFromCurrentWord);
       if (commonInfo) {
-        availableactionWordsAndInfos.push({ word: wordObj, commonInfo: commonInfo });
+        availableWordsAndInfos.push({ word: wordObj, commonInfo: commonInfo });
       }
     }
   });
 
-  if (availableactionWordsAndInfos.length > 0) {
-    return availableactionWordsAndInfos[Math.floor(Math.random() * availableactionWordsAndInfos.length)];
+  if (availableWordsAndInfos.length > 0) {
+    return availableWordsAndInfos[Math.floor(Math.random() * availableWordsAndInfos.length)];
   }
   
-  // Fallback 1: if no actionWords with suitable common letters, 
+  // Fallback 1: if no words with suitable common letters, 
   // try any other word with a different color.
-  const anyOtherColoractionWords = actionWords.filter(wordObj => 
+  const anyOtherColorWords = actionWords.filter(wordObj => 
     wordObj.color !== excludeColor && wordObj.text !== currentWordText
   );
-  if (anyOtherColoractionWords.length > 0) {
-    return { word: anyOtherColoractionWords[Math.floor(Math.random() * anyOtherColoractionWords.length)], commonInfo: null };
+  if (anyOtherColorWords.length > 0) {
+    return { word: anyOtherColorWords[Math.floor(Math.random() * anyOtherColorWords.length)], commonInfo: null };
   }
   
   // Fallback 2: if still no options, try any other word at all (except current).
-  const anyOtheractionWords = actionWords.filter(wordObj => wordObj.text !== currentWordText);
-  if (anyOtheractionWords.length > 0) {
-      return { word: anyOtheractionWords[Math.floor(Math.random() * anyOtheractionWords.length)], commonInfo: null };
+  const anyOtherWords = actionWords.filter(wordObj => wordObj.text !== currentWordText);
+  if (anyOtherWords.length > 0) {
+      return { word: anyOtherWords[Math.floor(Math.random() * anyOtherWords.length)], commonInfo: null };
   }
   
   // Fallback 3: As a last resort, if only one word or current is the only option.
@@ -229,13 +227,13 @@ function getRandomWordWithCommonLetter(currentWordText, excludeColor, excludedLe
 }
 
 /**
- * Анимирует переход между текущим и новым словом.
- * Если найдена общая буква, она "перелетает" из старого слова в новое.
- * В противном случае старое слово исчезает, новое появляется.
- * @param {{text: string, color: string}} currentWordObj - Объект текущего слова.
- * @param {{text: string, color: string}} newWordObj - Объект нового слова.
- * @param {null|{letter: string, positionInWord1: number, positionInWord2: number}} commonLetterInfoToUse - Информация об общей букве для использования в переходе.
- * @param {string} currentWordBaseColor - Базовый цвет текущего слова.
+ * Animates the transition between the current and new word.
+ * If a common letter is found, it "flies" from the old word to the new one.
+ * Otherwise, the old word disappears and the new one appears.
+ * @param {{text: string, color: string}} currentWordObj - Object of the current word.
+ * @param {{text: string, color: string}} newWordObj - Object of the new word.
+ * @param {null|{letter: string, positionInWord1: number, positionInWord2: number}} commonLetterInfoToUse - Information about the common letter to use in the transition.
+ * @param {string} currentWordBaseColor - Base color of the current word.
  */
 async function animateWordTransition(currentWordObj, newWordObj, commonLetterInfoToUse, currentWordBaseColor) {
   const commonLetterInfo = commonLetterInfoToUse;
@@ -244,11 +242,9 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
 
   let requiredWidthForNewWord = 0;
   const tempSpanForWidthCalc = document.createElement('span');
-  // Возвращаем более простой способ задания стилей
-  tempSpanForWidthCalc.style.fontFamily = 'Anton, sans-serif'; // Предполагая, что эти стили консистентны
+  tempSpanForWidthCalc.style.fontFamily = 'Anton, sans-serif';
   tempSpanForWidthCalc.style.fontSize = '200px';
   tempSpanForWidthCalc.style.letterSpacing = '-4px';
-  // tempSpanForWidthCalc.style.fontWeight = containerComputedStyle.fontWeight;
   tempSpanForWidthCalc.style.whiteSpace = 'nowrap';
   tempSpanForWidthCalc.style.visibility = 'hidden';
   tempSpanForWidthCalc.style.position = 'absolute'; 
@@ -257,7 +253,7 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
   requiredWidthForNewWord = tempSpanForWidthCalc.getBoundingClientRect().width;
   document.body.removeChild(tempSpanForWidthCalc);
 
-  const safetyBuffer = 40; // Значительно увеличиваем буфер до 40px
+  const safetyBuffer = 40; // Significantly increase buffer to 40px
   container.style.width = Math.max(currentContainerWidth, requiredWidthForNewWord) + safetyBuffer + 'px';
   
   const containerRect = container.getBoundingClientRect();
@@ -276,12 +272,8 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
       const span = currentChildSpans[i];
       const spanText = span.textContent;
       const spanLen = spanText.length;
-      // Предполагаем, что charScanIndex инициализируется где-то до этого цикла или не нужен в этом подходе
-      // Для простоты, допустим, positionInWord1 - это глобальный индекс в слове, а нам нужно найти span.
-      // Простой вариант: если currentWordObj.text.charAt(positionInWord1) находится внутри spanText
-      // Это требует более сложной логики отслеживания общего индекса по спанам, как было раньше.
-      // Вернем charScanIndex для корректной работы с мульти-спановыми словами.
-      let localCharScanIndex = 0; // Локальный индекс для определения, к какому span относится positionInWord1
+      
+      let localCharScanIndex = 0; // Local index to determine which span positionInWord1 relates to
       for (let j = 0; j < i; j++) {
         localCharScanIndex += currentChildSpans[j].textContent.length;
       }
@@ -293,7 +285,6 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
           commonActualCharPosInSpan: positionInWord1 - localCharScanIndex,
           commonActualCharValue: currentWordObj.text.charAt(positionInWord1),
           spanText: spanText
-          // initialX: 0 // Удаляем это, будем рассчитывать по ghostSpan
         };
         break;
       }
@@ -301,7 +292,7 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
 
     if (!commonLetterHostingSpanInfo) {
         console.warn("Common letter hosting span not found in DOM. Fallback.");
-        // Fallback (полное исчезновение/появление)
+        // Fallback (complete fade out/in)
         const allCurrentPartsFallback = container.querySelectorAll('.word-part');
         allCurrentPartsFallback.forEach(part => part.classList.add('fading-out'));
         setTimeout(() => {
@@ -314,9 +305,6 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
         }, 250);
         return;
     }
-
-    // initialXOfBridgeLetterInContainer будет рассчитан после вставки ghostSpan
-    // const initialXOfBridgeLetterInContainer = commonLetterHostingSpanInfo.initialX; // Удаляем старый способ
 
     const { spanToSplit, originalColor, commonActualCharPosInSpan, commonActualCharValue, spanText } = commonLetterHostingSpanInfo;
     
@@ -345,9 +333,8 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
       parent.insertBefore(sAfter, nextSibling);
     }
     
-    // Рассчитываем initialX на основе положения ghostSpan ПОСЛЕ его вставки в DOM
+    // Calculate initialX based on ghostSpan position AFTER its insertion in DOM
     const ghostRect = ghostSpan.getBoundingClientRect();
-    // containerRect был определен ранее, после установки container.style.width
     initialXOfBridgeLetterInContainer = ghostRect.left - containerRect.left;
 
     bridgeLetterElement = document.createElement('span');
@@ -357,40 +344,40 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
     
     bridgeLetterElement.style.position = 'absolute';
     bridgeLetterElement.style.left = initialXOfBridgeLetterInContainer + 'px';
-    bridgeLetterElement.style.top = '0px'; // Используем '0px' или ghostRect.top - containerRect.top для точности по Y
-    container.appendChild(bridgeLetterElement); // Добавляем в контейнер, не в поток
+    bridgeLetterElement.style.top = '0px';
+    container.appendChild(bridgeLetterElement); // Add to container, not in flow
 
     targetXOfBridgeLetterInContainer = calculateLetterPosition(newWordObj.text, positionInWord2);
     const deltaX = targetXOfBridgeLetterInContainer - initialXOfBridgeLetterInContainer;
 
-    // bridgeLetterElement уже создан, спозиционирован абсолютно и не двигается (transform еще не применен)
-    // partsToFadeOut будут исчезать ПОД ним (если z-index настроен) или рядом.
+    // bridgeLetterElement is already created, positioned absolutely and not moving (transform not yet applied)
+    // partsToFadeOut will disappear UNDER it (if z-index is set) or beside it.
     const partsToFadeOut = Array.from(container.childNodes).filter(
         node => node.nodeType === 1 && node.classList.contains('word-part') && !node.classList.contains('common-letter')
     );
     
-    requestAnimationFrame(() => { // Оборачиваем добавление класса в requestAnimationFrame
+    requestAnimationFrame(() => { // Wrap adding class in requestAnimationFrame
       partsToFadeOut.forEach(part => part.classList.add('fading-out'));
     });
 
-    // Этап 1: Ожидаем завершения fadeOut старого слова (250 мс)
-    // bridgeLetterElement (absolute, static transform) остается видимым
+    // Stage 1: Wait for fadeOut of old word to complete (250 ms)
+    // bridgeLetterElement (absolute, static transform) remains visible
     setTimeout(() => {
-      // Этап 1.5: Пауза 150мс. bridgeLetterElement все еще статичен.
+      // Stage 1.5: Pause 150ms. bridgeLetterElement is still static.
       setTimeout(() => {
-        bridgeLetterElement.style.transform = `translateX(${deltaX}px)`; // Запускаем CSS анимацию на 450мс
+        bridgeLetterElement.style.transform = `translateX(${deltaX}px)`; // Start CSS animation for 450ms
 
         partsToFadeOut.forEach(part => {
           if (part.parentNode) part.parentNode.removeChild(part);
         });
-        // Дополнительная очистка, если остались текстовые узлы и т.п.
+        // Additional cleanup, if text nodes etc. remain
         Array.from(container.childNodes).forEach(node => {
           if (node !== bridgeLetterElement) {
             container.removeChild(node);
           }
         });
 
-        // Этап 2: Через 100 мс после начала движения буквы, показываем новое слово
+        // Stage 2: 100ms after letter movement starts, show new word
         setTimeout(() => {
           const before2Text = newWordObj.text.substring(0, positionInWord2);
           const commonCharInNewWord = newWordObj.text.charAt(positionInWord2);
@@ -420,10 +407,10 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
             fragmentForNewParts.appendChild(afterSpan);
           }
           container.appendChild(fragmentForNewParts);
-        }, 100); // 100 мс задержка для появления нового слова
+        }, 100); // 100ms delay for new word appearance
 
-        // Этап 3: Завершение для bridgeLetterElement (синхронизировано с его анимацией transform)
-        // Анимация transform длится 450мс. Добавим небольшой буфер (20-50мс).
+        // Stage 3: Completion for bridgeLetterElement (synchronized with its transform animation)
+        // Transform animation lasts 450ms. Add small buffer (20-50ms).
         setTimeout(() => {
           const allNewPartsInContainer = container.querySelectorAll('.word-part:not(.common-letter-placeholder)');
           allNewPartsInContainer.forEach(part => {
@@ -464,12 +451,12 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
               }
             }
           }
-          const finalDisplaySafetyBuffer = 15; // Новый буфер для статичного отображения
-          if (container.scrollWidth > 0) { // Убедимся, что scrollWidth имеет разумное значение
+          const finalDisplaySafetyBuffer = 15; // New buffer for static display
+          if (container.scrollWidth > 0) { // Make sure scrollWidth has reasonable value
             container.style.width = container.scrollWidth + finalDisplaySafetyBuffer + 'px';
           } else {
-            // Запасной вариант, если scrollWidth равен 0 (маловероятно, но для надежности)
-            // Попробуем пересчитать ширину на основе текста нового слова
+            // Fallback if scrollWidth is 0 (unlikely, but for reliability)
+            // Try to recalculate width based on new word text
             const tempSpan = document.createElement('span');
             tempSpan.style.fontFamily = 'Anton, sans-serif';
             tempSpan.style.fontSize = '200px';
@@ -483,11 +470,11 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
             document.body.removeChild(tempSpan);
             container.style.width = fallbackWidth + finalDisplaySafetyBuffer + 'px';
           }
-        }, 450 + 30); // Длительность transform + буфер.
+        }, 450 + 30); // Transform duration + buffer.
 
-      }, 150); // 150 мс пауза после исчезновения старого слова
+      }, 150); // 150ms pause after old word fade out
 
-    }, 250); // 250 мс для fadeOut старого слова
+    }, 250); // 250ms for fadeOut of old word
 
   } else {
     const allCurrentParts = container.querySelectorAll('.word-part');
@@ -504,10 +491,10 @@ async function animateWordTransition(currentWordObj, newWordObj, commonLetterInf
 }
 
 /**
- * Основная функция для смены слов.
- * Получает текущее и следующее слово, запускает анимацию перехода.
- * Обновляет информацию о "приземлившейся" букве для следующего цикла.
- * Устанавливает таймер для следующей смены слова.
+ * Main function for changing words.
+ * Gets the current and next word, starts the transition animation.
+ * Updates information about the "landed" letter for the next cycle.
+ * Sets timer for the next word change.
  */
 async function changeWord() {
   const currentWordObject = actionWords[currentWordIndex];
@@ -550,14 +537,14 @@ async function changeWord() {
       currentWordIndex = newIndex;
   }
   
-  // Интервал до следующей смены слова в этом iframe.
-  // Рассчитан для синхронизации с другим iframe (something replit.html).
+  // Interval until next word change in this iframe.
+  // Calculated for synchronization with other iframe (something.html).
   const nextInterval = 2710;
   setTimeout(changeWord, nextInterval);
 }
 
-// Начальная задержка перед первой сменой слова в этом iframe.
-// "DESIGN" должно смениться вторым, после "SOMETHING" и паузы.
+// Initial delay before first word change in this iframe.
+// "DESIGN" should change second, after "SOMETHING" and a pause.
 const initialInterval = 2880;
 setTimeout(changeWord, initialInterval);
 </script>
