@@ -1,0 +1,586 @@
+<link href="https://fonts.googleapis.com/css2?family=Anton:wght@400;700&display=swap" rel="stylesheet">
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  height: 100%;
+  background: #010214;
+}
+
+#wrapper {
+  padding-top: 0; /* даёт гарантированный отступ сверху */
+  box-sizing: border-box;
+  height: 100vh; /* растягиваем обёртку */
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.hero-word-container {
+  position: relative;
+  display: block;
+  min-height: 190px;
+  font-family: 'Anton', sans-serif;
+  font-size: 200px;
+  line-height: 176px;
+  font-weight: 500;
+  letter-spacing: -4px;
+  white-space: nowrap;
+  overflow: visible;
+  width: 100%;
+  max-width: 100vw;
+  font-size: 0;
+  text-align: left;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.word-part {
+  display: inline-block;
+  font-size: 200px;
+  line-height: 176px;
+  margin: 0;
+  padding: 0;
+  vertical-align: baseline;
+}
+
+.word-part.fading-out {
+  animation: fadeOut 0.25s ease-out forwards;
+}
+
+.word-part.fading-in {
+  animation: fadeIn 0.25s ease-in forwards;
+  opacity: 0;
+}
+
+.common-letter {
+  position: relative;
+  transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 10;
+}
+
+.common-letter.moving {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: all 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+</style>
+
+<div id="wrapper">
+  <div class="hero-word-container">
+    <span id="hero-word" class="word-part" style="color:#E0E3D8;">SOMETHING</span>
+  </div>
+</div>
+<script>
+const valueWords = [
+  { text: "SOMETHING", color: "#E0E3D8" },
+  { text: "TRUST", color: "#3560E2" },
+  { text: "PURPOSE", color: "#67CF3A" },
+  { text: "BEAUTY", color: "#FF6237" },
+  { text: "SIMPLICITY", color: "#845DD9" },
+  { text: "IMPACT", color: "#F6DF49" },
+  { text: "GROWTH", color: "#1FC37E" },
+  { text: "AUTHENTICITY", color: "#FFB221" },
+  { text: "CLARITY", color: "#FF6237" },
+  { text: "JOY", color: "#F6DF49" },
+  { text: "BALANCE", color: "#1FC37E" },
+  { text: "HUMANITY", color: "#FFB221" },
+  { text: "VALUE", color: "#3560E2" },
+  { text: "QUALITY", color: "#67CF3A" },
+  { text: "CONVERSION", color: "#3560E2" },
+  { text: "UNDERSTANDING", color: "#F54242" },
+  { text: "USER SUCCESS", color: "#1FC37E" },
+  { text: "COMPASSION", color: "#845DD9" },
+  { text: "INNOVATION", color: "#FFB221" },
+  { text: "FUTURE", color: "#F6DF49" },
+  { text: "DIVERSITY", color: "#F54242" },
+  { text: "RESPECT", color: "#3560E2" },
+  { text: "LOYALTY", color: "#1FC37E" },
+  { text: "WARMTH", color: "#FFB221" },
+  { text: "HONESTY", color: "#67CF3A" },
+  { text: "ESSENCE", color: "#FFB221" },
+  { text: "SERENITY", color: "#845DD9" },
+  { text: "INSIGHT", color: "#FF6237" },
+  { text: "PEACE", color: "#F6DF49" },
+  { text: "DEEP CARE", color: "#F54242" },
+  { text: "BELONGING", color: "#F6DF49" },
+  { text: "EVERYDAY LIFE", color: "#67CF3A" },
+  { text: "WHAT MATTERS", color: "#FF6237" },
+  { text: "DIFFERENCE", color: "#845DD9" },
+  { text: "STILLNESS", color: "#845DD9" },
+  { text: "EASE", color: "#F54242" },
+  { text: "DELIGHT", color: "#3560E2" },
+  { text: "REFINEMENT", color: "#67CF3A" },
+  { text: "ALIGNMENT", color: "#1FC37E" }
+];
+
+let currentWordIndex = 0;
+const container = document.querySelector('.hero-word-container');
+let lastLandedBridgeInfo = null; // Сохраняет информацию о последней "приземлившейся" общей букве { char: 'S', indexInCurrentWord: 3 }
+
+/**
+ * Генерирует случайное число между min и max (включительно).
+ * @param {number} min - Минимальное значение.
+ * @param {number} max - Максимальное значение.
+ * @returns {number} Случайное целое число.
+ */
+function getRandomInterval(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Находит первую общую букву между двумя словами, исключая определенную букву в определенной позиции, если указано.
+ * @param {string} word1 - Первое слово.
+ * @param {string} word2 - Второе слово.
+ * @param {null|{char: string, indexInCurrentWord: number}} excludedInfo - Информация об исключаемой букве (буква и ее индекс в word1).
+ * @returns {null|{letter: string, positionInWord1: number, positionInWord2: number}} Объект с общей буквой и ее позициями или null.
+ */
+function findCommonLetters(word1, word2, excludedInfo = null) {
+  const letters1 = word1.toLowerCase().split('');
+  const letters2 = word2.toLowerCase().split('');
+  
+  for (let i = 0; i < letters1.length; i++) {
+    const charInWord1Lowercase = letters1[i];
+    const originalCharInWord1 = word1.charAt(i);
+
+    // Check for exclusion
+    if (excludedInfo &&
+        charInWord1Lowercase === excludedInfo.char.toLowerCase() &&
+        i === excludedInfo.indexInCurrentWord) {
+      continue; // Skip this specific character at this specific position in word1
+    }
+
+    // Исключаем пробелы и проверяем что буква есть во втором слове
+    if (charInWord1Lowercase !== ' ' && charInWord1Lowercase.trim() !== '' && letters2.includes(charInWord1Lowercase)) {
+      const positionInWord2 = letters2.indexOf(charInWord1Lowercase);
+      if (positionInWord2 !== -1) {
+        return {
+          letter: originalCharInWord1.toUpperCase(), // Use original casing, then uppercase for consistency
+          positionInWord1: i,
+          positionInWord2: positionInWord2
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Вычисляет позицию (смещение слева в пикселях) буквы в слове.
+ * Используется для определения, куда должна "приземлиться" общая буква.
+ * @param {string} word - Слово.
+ * @param {number} letterIndex - Индекс буквы в слове.
+ * @returns {number} Позиция буквы в пикселях.
+ */
+function calculateLetterPosition(word, letterIndex) {
+  const tempSpan = document.createElement('span');
+  // Возвращаем более простой способ задания стилей, который был ранее
+  tempSpan.style.fontFamily = 'Anton, sans-serif'; // Или возьмем из CSS .hero-word-container если нужно
+  tempSpan.style.fontSize = '200px';
+  tempSpan.style.letterSpacing = '-4px';
+  // tempSpan.style.fontWeight = computedStyle.fontWeight; // fontWeight не был критичен ранее
+  tempSpan.style.whiteSpace = 'nowrap';
+
+  tempSpan.style.visibility = 'hidden';
+  tempSpan.style.position = 'absolute';
+  tempSpan.textContent = word.substring(0, letterIndex);
+  document.body.appendChild(tempSpan);
+  
+  const width = tempSpan.getBoundingClientRect().width; 
+  document.body.removeChild(tempSpan);
+  
+  return width;
+}
+
+/**
+ * Выбирает случайное следующее слово для анимации.
+ * Приоритет отдается словам с общей буквой (не той, что была общей в предыдущем переходе, если была).
+ * Также избегает повторения цвета слова.
+ * Предусмотрены фоллбэки, если подходящее слово с общей буквой не найдено.
+ * @param {string} currentWordText - Текст текущего слова.
+ * @param {string} excludeColor - Цвет текущего слова, который нужно избегать для следующего.
+ * @param {null|{char: string, indexInCurrentWord: number}} excludedLetterInfoFromCurrentWord - Информация о букве, которая была мостом в *предыдущем* переходе (чтобы не использовать её снова как мост из текущего слова).
+ * @returns {{word: {text: string, color: string}, commonInfo: null|{letter: string, positionInWord1: number, positionInWord2: number}}} Объект со следующим словом и информацией об общей букве (если есть).
+ */
+function getRandomWordWithCommonLetter(currentWordText, excludeColor, excludedLetterInfoFromCurrentWord) {
+  const availablevalueWordsAndInfos = [];
+  valueWords.forEach(wordObj => {
+    if (wordObj.color !== excludeColor && wordObj.text !== currentWordText) {
+      // Pass the excludedLetterInfoFromCurrentWord to findCommonLetters
+      const commonInfo = findCommonLetters(currentWordText, wordObj.text, excludedLetterInfoFromCurrentWord);
+      if (commonInfo) {
+        availablevalueWordsAndInfos.push({ word: wordObj, commonInfo: commonInfo });
+      }
+    }
+  });
+
+  if (availablevalueWordsAndInfos.length > 0) {
+    return availablevalueWordsAndInfos[Math.floor(Math.random() * availablevalueWordsAndInfos.length)];
+  }
+  
+  // Fallback 1: if no valueWords with suitable common letters, 
+  // try any other word with a different color.
+  const anyOtherColorvalueWords = valueWords.filter(wordObj => 
+    wordObj.color !== excludeColor && wordObj.text !== currentWordText
+  );
+  if (anyOtherColorvalueWords.length > 0) {
+    return { word: anyOtherColorvalueWords[Math.floor(Math.random() * anyOtherColorvalueWords.length)], commonInfo: null };
+  }
+  
+  // Fallback 2: if still no options, try any other word at all (except current).
+  const anyOthervalueWords = valueWords.filter(wordObj => wordObj.text !== currentWordText);
+  if (anyOthervalueWords.length > 0) {
+      return { word: anyOthervalueWords[Math.floor(Math.random() * anyOthervalueWords.length)], commonInfo: null };
+  }
+  
+  // Fallback 3: As a last resort, if only one word or current is the only option.
+  const currentWordData = valueWords.find(w => w.text === currentWordText);
+  return { word: currentWordData || valueWords[0], commonInfo: null }; 
+}
+
+/**
+ * Анимирует переход между текущим и новым словом.
+ * Если найдена общая буква, она "перелетает" из старого слова в новое.
+ * В противном случае старое слово исчезает, новое появляется.
+ * @param {{text: string, color: string}} currentWordObj - Объект текущего слова.
+ * @param {{text: string, color: string}} newWordObj - Объект нового слова.
+ * @param {null|{letter: string, positionInWord1: number, positionInWord2: number}} commonLetterInfoToUse - Информация об общей букве для использования в переходе.
+ * @param {string} currentWordBaseColor - Базовый цвет текущего слова.
+ */
+async function animateWordTransition(currentWordObj, newWordObj, commonLetterInfoToUse, currentWordBaseColor) {
+  const commonLetterInfo = commonLetterInfoToUse;
+
+  const currentContainerWidth = container.offsetWidth;
+
+  let requiredWidthForNewWord = 0;
+  const tempSpanForWidthCalc = document.createElement('span');
+  // Возвращаем более простой способ задания стилей
+  tempSpanForWidthCalc.style.fontFamily = 'Anton, sans-serif'; // Предполагая, что эти стили консистентны
+  tempSpanForWidthCalc.style.fontSize = '200px';
+  tempSpanForWidthCalc.style.letterSpacing = '-4px';
+  // tempSpanForWidthCalc.style.fontWeight = containerComputedStyle.fontWeight;
+  tempSpanForWidthCalc.style.whiteSpace = 'nowrap';
+  tempSpanForWidthCalc.style.visibility = 'hidden';
+  tempSpanForWidthCalc.style.position = 'absolute'; 
+  tempSpanForWidthCalc.textContent = newWordObj.text;
+  document.body.appendChild(tempSpanForWidthCalc);
+  requiredWidthForNewWord = tempSpanForWidthCalc.getBoundingClientRect().width;
+  document.body.removeChild(tempSpanForWidthCalc);
+
+  const safetyBuffer = 40; // Значительно увеличиваем буфер до 40px
+  container.style.width = Math.max(currentContainerWidth, requiredWidthForNewWord) + safetyBuffer + 'px';
+  
+  const containerRect = container.getBoundingClientRect();
+
+  let bridgeLetterElement = null;
+  let initialXOfBridgeLetterInContainer = 0;
+  let targetXOfBridgeLetterInContainer = 0;
+
+  if (commonLetterInfo) {
+    const { letter: commonLetterChar, positionInWord1, positionInWord2 } = commonLetterInfo;
+    
+    let commonLetterHostingSpanInfo = null;
+    const currentChildSpans = Array.from(container.childNodes).filter(node => node.nodeType === 1 && node.classList.contains('word-part'));
+
+    for (let i = 0; i < currentChildSpans.length; i++) {
+      const span = currentChildSpans[i];
+      const spanText = span.textContent;
+      const spanLen = spanText.length;
+      // Предполагаем, что charScanIndex инициализируется где-то до этого цикла или не нужен в этом подходе
+      // Для простоты, допустим, positionInWord1 - это глобальный индекс в слове, а нам нужно найти span.
+      // Простой вариант: если currentWordObj.text.charAt(positionInWord1) находится внутри spanText
+      // Это требует более сложной логики отслеживания общего индекса по спанам, как было раньше.
+      // Вернем charScanIndex для корректной работы с мульти-спановыми словами.
+      let localCharScanIndex = 0; // Локальный индекс для определения, к какому span относится positionInWord1
+      for (let j = 0; j < i; j++) {
+        localCharScanIndex += currentChildSpans[j].textContent.length;
+      }
+
+      if (localCharScanIndex <= positionInWord1 && positionInWord1 < localCharScanIndex + spanLen) {
+        commonLetterHostingSpanInfo = {
+          spanToSplit: span,
+          originalColor: span.style.color || currentWordBaseColor,
+          commonActualCharPosInSpan: positionInWord1 - localCharScanIndex,
+          commonActualCharValue: currentWordObj.text.charAt(positionInWord1),
+          spanText: spanText
+          // initialX: 0 // Удаляем это, будем рассчитывать по ghostSpan
+        };
+        break;
+      }
+    }
+
+    if (!commonLetterHostingSpanInfo) {
+        console.warn("Common letter hosting span not found in DOM. Fallback.");
+        // Fallback (полное исчезновение/появление)
+        const allCurrentPartsFallback = container.querySelectorAll('.word-part');
+        allCurrentPartsFallback.forEach(part => part.classList.add('fading-out'));
+        setTimeout(() => {
+            container.innerHTML = `<span class="word-part fading-in" style="color: ${newWordObj.color};">${newWordObj.text}</span>`;
+            setTimeout(() => {
+                const newWordEl = container.querySelector('.word-part.fading-in');
+                if (newWordEl) newWordEl.classList.remove('fading-in');
+                container.style.width = 'auto';
+            }, 270);
+        }, 250);
+        return;
+    }
+
+    // initialXOfBridgeLetterInContainer будет рассчитан после вставки ghostSpan
+    // const initialXOfBridgeLetterInContainer = commonLetterHostingSpanInfo.initialX; // Удаляем старый способ
+
+    const { spanToSplit, originalColor, commonActualCharPosInSpan, commonActualCharValue, spanText } = commonLetterHostingSpanInfo;
+    
+    const parent = spanToSplit.parentNode;
+    const nextSibling = spanToSplit.nextSibling;
+    parent.removeChild(spanToSplit);
+
+    const textBeforeInSpan = spanText.substring(0, commonActualCharPosInSpan);
+    const textAfterInSpan = spanText.substring(commonActualCharPosInSpan + 1);
+
+    if (textBeforeInSpan) {
+      const sBefore = document.createElement('span');
+      sBefore.className = 'word-part'; sBefore.style.color = originalColor; sBefore.textContent = textBeforeInSpan;
+      parent.insertBefore(sBefore, nextSibling);
+    }
+
+    const ghostSpan = document.createElement('span');
+    ghostSpan.className = 'word-part';
+    ghostSpan.style.color = '#010214'; 
+    ghostSpan.textContent = commonActualCharValue;
+    parent.insertBefore(ghostSpan, nextSibling);
+
+    if (textAfterInSpan) {
+      const sAfter = document.createElement('span');
+      sAfter.className = 'word-part'; sAfter.style.color = originalColor; sAfter.textContent = textAfterInSpan;
+      parent.insertBefore(sAfter, nextSibling);
+    }
+    
+    // Рассчитываем initialX на основе положения ghostSpan ПОСЛЕ его вставки в DOM
+    const ghostRect = ghostSpan.getBoundingClientRect();
+    // containerRect был определен ранее, после установки container.style.width
+    initialXOfBridgeLetterInContainer = ghostRect.left - containerRect.left;
+
+    bridgeLetterElement = document.createElement('span');
+    bridgeLetterElement.className = 'word-part common-letter'; 
+    bridgeLetterElement.style.color = originalColor; 
+    bridgeLetterElement.textContent = commonActualCharValue;
+    
+    bridgeLetterElement.style.position = 'absolute';
+    bridgeLetterElement.style.left = initialXOfBridgeLetterInContainer + 'px';
+    bridgeLetterElement.style.top = '0px'; // Используем '0px' или ghostRect.top - containerRect.top для точности по Y
+    container.appendChild(bridgeLetterElement); // Добавляем в контейнер, не в поток
+
+    targetXOfBridgeLetterInContainer = calculateLetterPosition(newWordObj.text, positionInWord2);
+    const deltaX = targetXOfBridgeLetterInContainer - initialXOfBridgeLetterInContainer;
+
+    // bridgeLetterElement уже создан, спозиционирован абсолютно и не двигается (transform еще не применен)
+    // partsToFadeOut будут исчезать ПОД ним (если z-index настроен) или рядом.
+    const partsToFadeOut = Array.from(container.childNodes).filter(
+        node => node.nodeType === 1 && node.classList.contains('word-part') && !node.classList.contains('common-letter')
+    );
+    
+    requestAnimationFrame(() => { // Оборачиваем добавление класса в requestAnimationFrame
+      partsToFadeOut.forEach(part => part.classList.add('fading-out'));
+    });
+
+    // Этап 1: Ожидаем завершения fadeOut старого слова (250 мс)
+    // bridgeLetterElement (absolute, static transform) остается видимым
+    setTimeout(() => {
+      // Этап 1.5: Пауза 150мс. bridgeLetterElement все еще статичен.
+      setTimeout(() => {
+        bridgeLetterElement.style.transform = `translateX(${deltaX}px)`; // Запускаем CSS анимацию на 450мс
+
+        partsToFadeOut.forEach(part => {
+          if (part.parentNode) part.parentNode.removeChild(part);
+        });
+        // Дополнительная очистка, если остались текстовые узлы и т.п.
+        Array.from(container.childNodes).forEach(node => {
+          if (node !== bridgeLetterElement) {
+            container.removeChild(node);
+          }
+        });
+
+        // Этап 2: Через 100 мс после начала движения буквы, показываем новое слово
+        setTimeout(() => {
+          const before2Text = newWordObj.text.substring(0, positionInWord2);
+          const commonCharInNewWord = newWordObj.text.charAt(positionInWord2);
+          const after2Text = newWordObj.text.substring(positionInWord2 + 1);
+          
+          const fragmentForNewParts = document.createDocumentFragment();
+
+          if (before2Text.trim() !== '') {
+            const beforeSpan = document.createElement('span');
+            beforeSpan.className = 'word-part fading-in';
+            beforeSpan.style.color = newWordObj.color;
+            beforeSpan.textContent = before2Text;
+            fragmentForNewParts.appendChild(beforeSpan);
+          }
+          
+          const placeholderSpan = document.createElement('span');
+          placeholderSpan.className = 'word-part common-letter-placeholder fading-in';
+          placeholderSpan.style.color = '#010214'; 
+          placeholderSpan.textContent = commonCharInNewWord;
+          fragmentForNewParts.appendChild(placeholderSpan);
+
+          if (after2Text.trim() !== '') {
+            const afterSpan = document.createElement('span');
+            afterSpan.className = 'word-part fading-in';
+            afterSpan.style.color = newWordObj.color;
+            afterSpan.textContent = after2Text;
+            fragmentForNewParts.appendChild(afterSpan);
+          }
+          container.appendChild(fragmentForNewParts);
+        }, 100); // 100 мс задержка для появления нового слова
+
+        // Этап 3: Завершение для bridgeLetterElement (синхронизировано с его анимацией transform)
+        // Анимация transform длится 450мс. Добавим небольшой буфер (20-50мс).
+        setTimeout(() => {
+          const allNewPartsInContainer = container.querySelectorAll('.word-part:not(.common-letter-placeholder)');
+          allNewPartsInContainer.forEach(part => {
+              part.classList.remove('fading-in');
+          });
+          
+          const placeholderToReplace = container.querySelector('.common-letter-placeholder');
+          
+          if (bridgeLetterElement) {
+            bridgeLetterElement.style.transform = ''; 
+            bridgeLetterElement.style.position = 'relative';
+            bridgeLetterElement.style.left = '';
+            bridgeLetterElement.style.top = '';
+            bridgeLetterElement.classList.remove('common-letter');
+
+            if (placeholderToReplace) {
+              placeholderToReplace.classList.remove('fading-in'); 
+              container.replaceChild(bridgeLetterElement, placeholderToReplace);
+            } else {
+              console.warn("Common letter placeholder not found for replacement. Reverting to insertion logic.");
+              const newChildNodes = Array.from(container.childNodes).filter(n => n !== bridgeLetterElement && n.nodeType === 1);
+              let inserted = false;
+              if (positionInWord2 === 0) {
+                  if(container.firstChild !== bridgeLetterElement) container.insertBefore(bridgeLetterElement, container.firstChild);
+                  inserted = true;
+              } else if (positionInWord2 <= newChildNodes.length) {
+                  const nodeToInsertBefore = newChildNodes.find((node, index) => index === positionInWord2);
+                  if (nodeToInsertBefore && nodeToInsertBefore !== bridgeLetterElement) {
+                       container.insertBefore(bridgeLetterElement, nodeToInsertBefore);
+                       inserted = true;
+                  } else if (!bridgeLetterElement.parentNode) {
+                      container.appendChild(bridgeLetterElement);
+                      inserted = true;
+                  }
+              }
+              if (!inserted && !bridgeLetterElement.parentNode) { 
+                  container.appendChild(bridgeLetterElement);
+              }
+            }
+          }
+          const finalDisplaySafetyBuffer = 15; // Новый буфер для статичного отображения
+          if (container.scrollWidth > 0) { // Убедимся, что scrollWidth имеет разумное значение
+            container.style.width = container.scrollWidth + finalDisplaySafetyBuffer + 'px';
+          } else {
+            // Запасной вариант, если scrollWidth равен 0 (маловероятно, но для надежности)
+            // Попробуем пересчитать ширину на основе текста нового слова
+            const tempSpan = document.createElement('span');
+            tempSpan.style.fontFamily = 'Anton, sans-serif';
+            tempSpan.style.fontSize = '200px';
+            tempSpan.style.letterSpacing = '-4px';
+            tempSpan.style.whiteSpace = 'nowrap';
+            tempSpan.style.visibility = 'hidden';
+            tempSpan.style.position = 'absolute';
+            tempSpan.textContent = newWordObj.text; 
+            document.body.appendChild(tempSpan);
+            const fallbackWidth = tempSpan.getBoundingClientRect().width;
+            document.body.removeChild(tempSpan);
+            container.style.width = fallbackWidth + finalDisplaySafetyBuffer + 'px';
+          }
+        }, 450 + 30); // Длительность transform + буфер.
+
+      }, 150); // 150 мс пауза после исчезновения старого слова
+
+    }, 250); // 250 мс для fadeOut старого слова
+
+  } else {
+    const allCurrentParts = container.querySelectorAll('.word-part');
+    allCurrentParts.forEach(part => part.classList.add('fading-out'));
+    setTimeout(() => {
+      container.innerHTML = `<span class="word-part fading-in" style="color: ${newWordObj.color};">${newWordObj.text}</span>`;
+      setTimeout(() => {
+        const newWordEl = container.querySelector('.word-part.fading-in');
+        if (newWordEl) newWordEl.classList.remove('fading-in');
+        container.style.width = 'auto';
+      }, 270); 
+    }, 250); 
+  }
+}
+
+/**
+ * Основная функция для смены слов.
+ * Получает текущее и следующее слово, запускает анимацию перехода.
+ * Обновляет информацию о "приземлившейся" букве для следующего цикла.
+ * Устанавливает таймер для следующей смены слова.
+ */
+async function changeWord() {
+  const currentWordObject = valueWords[currentWordIndex];
+  const currentWordBaseColor = currentWordObject.color;
+
+  // Get next word and the common letter info (which respects exclusions)
+  const selectionResult = getRandomWordWithCommonLetter(currentWordObject.text, currentWordBaseColor, lastLandedBridgeInfo);
+  const nextWordObject = selectionResult.word;
+  const commonLetterInfoForThisTransition = selectionResult.commonInfo;
+
+  if (!nextWordObject) {
+    // This case should ideally be handled by fallbacks in getRandomWordWithCommonLetter
+    console.error("Critical: getRandomWordWithCommonLetter did not return a word. Resetting or retrying.");
+    currentWordIndex = (currentWordIndex + 1) % valueWords.length; // Simple fallback
+    lastLandedBridgeInfo = null;
+    setTimeout(changeWord, 1500);
+    return;
+  }
+
+  // Animate the transition using the determined commonLetterInfo (or null if none)
+  await animateWordTransition(currentWordObject, nextWordObject, commonLetterInfoForThisTransition, currentWordBaseColor);
+
+  // Update lastLandedBridgeInfo for the *next* cycle based on the transition that just happened
+  if (commonLetterInfoForThisTransition) {
+    lastLandedBridgeInfo = {
+      char: commonLetterInfoForThisTransition.letter, // Already uppercase from findCommonLetters
+      indexInCurrentWord: commonLetterInfoForThisTransition.positionInWord2 // This is index in newWordObject.text
+    };
+  } else {
+    lastLandedBridgeInfo = null;
+  }
+
+  // Update currentWordIndex to the new word
+  const newIndex = valueWords.findIndex(w => w.text === nextWordObject.text);
+  if (newIndex === -1) {
+      console.error(`Could not find ${nextWordObject.text} in valueWords array. Resetting to 0.`);
+      currentWordIndex = 0;
+      lastLandedBridgeInfo = null; // Reset if index is messed up
+  } else {
+      currentWordIndex = newIndex;
+  }
+  
+  // Интервал до следующей смены слова в этом iframe.
+  // Рассчитан для синхронизации с другим iframe (design replit.html).
+  const nextInterval = 2710; 
+  setTimeout(changeWord, nextInterval);
+}
+
+// Начальная задержка перед первой сменой слова в этом iframe.
+// "SOMETHING" должно смениться первым.
+const initialInterval = 1500; 
+setTimeout(changeWord, initialInterval);
+</script>
