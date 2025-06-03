@@ -34,7 +34,7 @@
         }
         
         .demo-section {
-            padding: 16px 16px 80px 16px;
+            padding: 16px 16px 120px 16px;
             position: relative;
             width: 100%;
             height: 100%;
@@ -47,6 +47,7 @@
                     height: 100%;
                     box-sizing: border-box;
                     text-align: center;
+                    margin-bottom: 40px;
                 }
         
                 .button-wrapper {
@@ -955,13 +956,13 @@ let isSendHeightBusy = false;
         window.parent.postMessage(
             { 
                 type: "setIframeHeight", 
-                height: finalHeight + 25, // Add 25px buffer for shadows
+                height: finalHeight, // No buffer to prevent infinite growth
                 source: "tags-html" // Identifier for this specific iframe
             },
             "*"
         );
         
-        console.log("tags.html - Height sent to parent:", finalHeight + 25);
+        console.log("tags.html - Height sent to parent:", finalHeight);
 
         // Release the busy flag after a short delay to allow the current event loop to complete
         // and to prevent immediate re-triggering by observers reacting to style restoration.
