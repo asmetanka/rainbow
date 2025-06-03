@@ -857,30 +857,43 @@
 // Auto-height script for iframe integration (Figma Sites)
 function sendHeight() {
     const demoSection = document.querySelector('.demo-section');
+    const body = document.body;
+    const docElement = document.documentElement;
     let measuredHeight = 0;
 
     if (demoSection) {
-        const originalDemoSectionStyleHeight = demoSection.style.height;
+        // Store original inline styles if they exist, otherwise default to empty string
+        const originalDemoSectionStyleHeight = demoSection.style.height || '';
+        const originalBodyStyleHeight = body.style.height || '';
+        const originalDocElementStyleHeight = docElement.style.height || '';
+
+        // Temporarily allow shrinking by setting heights to auto
+        docElement.style.height = 'auto';
+        body.style.height = 'auto';
         demoSection.style.height = 'auto';
         
-        // Reading an offset property can help ensure the browser has reflowed
-        // demoSection.offsetHeight; 
+        // Force reflow to ensure 'auto' heights are applied before measurement
+        // Reading an offset property like offsetHeight triggers a reflow.
+        demoSection.offsetHeight; 
 
+        // Measure the scrollHeight of the demoSection
         measuredHeight = demoSection.scrollHeight;
+        
+        // Restore original inline styles
         demoSection.style.height = originalDemoSectionStyleHeight;
+        body.style.height = originalBodyStyleHeight;
+        docElement.style.height = originalDocElementStyleHeight;
     } else {
-        // Fallback if .demo-section is somehow not found
+        // Fallback measurement if .demo-section is not found
         measuredHeight = Math.max(
-            document.body.scrollHeight,
-            document.body.offsetHeight,
-            document.documentElement.scrollHeight,
-            document.documentElement.offsetHeight
+            document.body.scrollHeight, document.body.offsetHeight,
+            document.documentElement.scrollHeight, document.documentElement.offsetHeight
         );
         console.warn("tags.html: .demo-section not found, using fallback height measurement.");
     }
 
-    // Ensure a minimum height is reported (e.g., 50px)
-    const finalHeight = Math.max(measuredHeight, 50); 
+    // Ensure a minimum height is reported (e.g., 50px from content's perspective)
+    const finalHeight = Math.max(measuredHeight, 50);
 
     // Send height to parent window
     window.parent.postMessage(
