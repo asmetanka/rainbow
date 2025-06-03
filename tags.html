@@ -844,3 +844,166 @@
         setTimeout(initButtons, 500);
     })();
     </script>
+
+    <script>
+    // Auto-height script for iframe integration (Figma Sites)
+    function sendHeight() {
+        const height = Math.max(
+            document.body.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.clientHeight,
+            document.documentElement.scrollHeight,
+            document.documentElement.offsetHeight
+        );
+        
+        // Send height to parent window
+        window.parent.postMessage(
+            { 
+                type: "setIframeHeight", 
+                height: height,
+                source: "tags-html" // identifier for this specific iframe
+            },
+            "*"
+        );
+        
+        console.log("Height sent to parent:", height);
+    }
+
+    // Send height on load
+    window.addEventListener('load', sendHeight);
+    
+    // Send height on resize
+    window.addEventListener('resize', sendHeight);
+    
+    // Send height when content changes (button interactions)
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                setTimeout(sendHeight, 100); // Small delay to ensure DOM is updated
+            }
+        });
+    });
+    
+    // Start observing changes
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+    
+    // Fallback: send height periodically
+    setInterval(sendHeight, 2000);
+    
+    // Send initial height immediately
+    if (document.readyState === 'complete') {
+        sendHeight();
+    } else {
+        window.addEventListener('DOMContentLoaded', sendHeight);
+    }
+    </script>
+
+    <script>
+    // Parent communication script for Figma integration
+    (function() {
+        console.log("Parent communication script initialized");
+        
+        // Listen for messages from parent window (Figma)
+        window.addEventListener("message", function(event) {
+            console.log("Message received from parent:", event.data);
+            
+            // Handle different message types from parent
+            if (event.data && typeof event.data === 'object') {
+                switch(event.data.type) {
+                    case 'resize':
+                        // Handle resize requests from parent
+                        if (event.data.width || event.data.height) {
+                            console.log("Resize request received:", event.data);
+                            // Trigger height recalculation
+                            setTimeout(sendHeight, 100);
+                        }
+                        break;
+                        
+                    case 'theme':
+                        // Handle theme changes from parent
+                        if (event.data.theme) {
+                            console.log("Theme change received:", event.data.theme);
+                            // You can add theme handling logic here if needed
+                        }
+                        break;
+                        
+                    case 'init':
+                        // Handle initialization from parent
+                        console.log("Parent initialization received");
+                        sendHeight();
+                        break;
+                        
+                    default:
+                        console.log("Unknown message type:", event.data.type);
+                }
+            }
+        }, false);
+        
+        // Send ready signal to parent
+        function sendReadySignal() {
+            window.parent.postMessage({
+                type: "iframeReady",
+                source: "tags-html",
+                timestamp: Date.now()
+            }, "*");
+            console.log("Ready signal sent to parent");
+        }
+        
+        // Send ready signal when everything is loaded
+        if (document.readyState === 'complete') {
+            sendReadySignal();
+        } else {
+            window.addEventListener('load', sendReadySignal);
+        }
+        
+        // Enhanced height reporting with debouncing
+        let heightReportTimeout;
+        function debouncedSendHeight() {
+            clearTimeout(heightReportTimeout);
+            heightReportTimeout = setTimeout(sendHeight, 50);
+        }
+        
+        // Report height changes more efficiently
+        const resizeObserver = new ResizeObserver(debouncedSendHeight);
+        resizeObserver.observe(document.body);
+        
+        // Report interaction events to parent
+        document.addEventListener('click', function(event) {
+            const targetInfo = {
+                tagName: event.target.tagName,
+                className: event.target.className,
+                id: event.target.id
+            };
+            
+            window.parent.postMessage({
+                type: "interaction",
+                action: "click",
+                target: targetInfo,
+                source: "tags-html",
+                timestamp: Date.now()
+            }, "*");
+        });
+        
+        // Report when buttons are activated
+        const buttons = document.querySelectorAll('.demo-button');
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                window.parent.postMessage({
+                    type: "buttonActivated",
+                    buttonId: button.id,
+                    buttonText: button.textContent,
+                    source: "tags-html",
+                    timestamp: Date.now()
+                }, "*");
+            });
+        });
+        
+    })();
+    </script>
+</body>
+</html>
