@@ -1,0 +1,689 @@
+<style>
+    /* Font loading */
+    @font-face {
+        font-family: "Lato";
+        font-style: normal;
+        font-weight: 400;
+        src: url(https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTPHjx4wXiWtFCc.woff2) format('woff2');
+    }
+    @font-face {
+        font-family: "Montserrat";
+        font-style: normal;
+        font-weight: 400;
+        src: url(https://fonts.gstatic.com/s/montserrat/v30/JTUSjIg1_i6t8kCHKm459WlhyyTh89Y.woff2) format('woff2');
+    }
+    @font-face {
+        font-family: "Montserrat";
+        font-style: normal;
+        font-weight: 800;
+        src: url(https://fonts.gstatic.com/s/montserrat/v30/JTUSjIg1_i6t8kCHKm459WlhyyTh89Y.woff2) format('woff2');
+    }
+    
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+        height: 100%;
+        background: #010214;
+    }
+    
+    .demo-section {
+        padding: 16px;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+    }
+    
+    .demo-title {
+        color: white;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+            .button-container {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                box-sizing: border-box;
+                text-align: center;
+            }
+    
+            .button-wrapper {
+                position: relative;
+                display: inline-block;
+                z-index: 100;
+                margin: 8px;
+            }
+    
+            .demo-button {
+                padding: 12px 24px !important;
+                border-radius: 25px !important;
+                font-weight: 500 !important;
+                font-size: 16px !important;
+                cursor: pointer !important;
+                border: none !important;
+                outline: none !important;
+                color: white !important;
+                position: relative !important;
+                z-index: 100 !important;
+                pointer-events: auto !important;
+                font-family: "Lato", Arial, sans-serif !important;
+                display: block !important;
+                transition: background 0.3s !important;
+            }
+    
+            .demo-button.active {
+                background: #e7e5e4 !important;
+                color: #18181b !important;
+                transform: none !important;
+                box-shadow: none !important;
+                pointer-events: none !important;
+                cursor: default !important;
+                transition: none !important;
+            }
+    
+            .demo-button.active:hover {
+                background: #e7e5e4 !important;
+                color: #18181b !important;
+                box-shadow: none !important;
+                transform: none !important;
+                opacity: 1 !important;
+                transition: none !important;
+            }
+
+            /* Rainbow Green (#67CF3A) - Trust & Value Group */
+            #trust:not(.active), #value:not(.active), #authenticity:not(.active), #quality:not(.active), #purpose:not(.active) {
+                background: #67CF3A !important;
+                color: black !important;
+            }
+
+            /* Rainbow Yellow (#F6DF49) - Communication Group */
+            #clarity:not(.active), #transparency:not(.active), #guidance:not(.active), #insight:not(.active), #discovery:not(.active) {
+                background: #F6DF49 !important;
+                color: black !important;
+            }
+
+            /* Rainbow Gold (#FFB221) - Performance Group */
+            #reliability:not(.active), #efficiency:not(.active), #results:not(.active), #focus:not(.active), #detail:not(.active) {
+                background: #FFB221 !important;
+                color: black !important;
+            }
+
+            /* Rainbow Blue (#3560E2) - Growth & Partnership Group */
+            #partnership:not(.active), #growth:not(.active), #collaboration:not(.active), #engagement:not(.active), #alignment:not(.active), #learning:not(.active) {
+                background: #3560E2 !important;
+                color: white !important;
+            }
+
+            /* Rainbow Teal (#1FC37E) - Innovation & Progress Group */
+            #innovation:not(.active), #progress:not(.active), #adaptability:not(.active), #connection:not(.active), #stability:not(.active) {
+                background: #1FC37E !important;
+                color: white !important;
+            }
+
+            /* Rainbow Orange (#FF6237) - Impact & Success Group */
+            #impact:not(.active), #success:not(.active), #resilience:not(.active), #balance:not(.active) {
+                background: #FF6237 !important;
+                color: white !important;
+            }
+
+            .description-card {
+                position: absolute;
+                top: -8px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #e7e5e4;
+                color: #18181b;
+                border-radius: 22px;
+                padding: 28px 24px 20px 24px;
+                box-shadow: 0 2px 20px rgba(0, 0, 0, 0.50), 0 4px 16px rgba(147, 51, 234, 1.0);
+                min-width: 280px;
+                opacity: 0;
+                visibility: hidden;
+                z-index: 50;
+            }
+    
+            .description-card.show {
+                opacity: 1;
+                visibility: visible;
+                z-index: 1001 !important;
+            }
+    
+            .button-wrapper.active {
+                z-index: 1000 !important;
+            }
+    
+            .button-wrapper.active .demo-button {
+                z-index: 1002 !important;
+                position: relative !important;
+            }
+    
+            .description-card.adjust-left {
+                left: auto !important;
+                right: 0 !important;
+                transform: none !important;
+            }
+    
+            .description-card.adjust-offset {
+                /* This class will have dynamic left offset set via inline style */
+                transform: translateX(-50%) !important;
+            }
+    
+            .description h3 {
+                display: none;
+            }
+    
+            .description p {
+                font-family: "Lato", Arial, sans-serif;
+                font-size: 14px;
+                font-style: italic;
+                font-weight: 400;
+                margin: 24px 0 0 0;
+                color: #18181b;
+                line-height: 1.4;
+                text-align: left;
+            }
+    
+            .order-btn {
+                margin-top: 12px;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 20px;
+                background: #9333ea;
+                color: white;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                display: inline-block;
+                text-align: center;
+                white-space: nowrap;
+                transition: none;
+            }
+
+            /* Responsive design */
+            @media (max-width: 768px) {
+                .demo-section {
+                    padding: 16px;
+                    border-radius: 16px;
+                }
+                
+                .button-container {
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                .button-wrapper {
+                    margin: 6px;
+                }
+                
+                .description-card {
+                    min-width: 260px;
+                    padding: 12px 20px 16px 20px;
+                }
+                
+                .description p {
+                    font-size: 12px;
+                    margin: 12px 0 0 0;
+                }
+            }
+    </style>
+        <!-- Support & Values Tags -->
+        <div class="demo-section">
+            <div class="button-container">
+                
+                <div class="button-wrapper">
+                    <button class="demo-button" id="trust">Trust</button>
+                    <div class="description-card description" id="desc-trust">
+                        <p>You can count on us to deliver, every time.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Build on trust</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="reliability">Reliability</button>
+                    <div class="description-card description" id="desc-reliability">
+                        <p>Consistent performance and on-time delivery, no surprises.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Count on reliability</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="clarity">Clarity</button>
+                    <div class="description-card description" id="desc-clarity">
+                        <p>Clear communication, transparent process, no hidden steps.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Work with clarity</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="impact">Impact</button>
+                    <div class="description-card description" id="desc-impact">
+                        <p>Design and tech that actually move the business forward.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Maximize our impact</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="partnership">Partnership</button>
+                    <div class="description-card description" id="desc-partnership">
+                        <p>Real collaboration, your goals become ours.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Let's partner up</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="growth">Growth</button>
+                    <div class="description-card description" id="desc-growth">
+                        <p>We help you scale — users, revenue, team.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Accelerate growth</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="results">Results</button>
+                    <div class="description-card description" id="desc-results">
+                        <p>Tangible business outcomes, not just pretty pictures.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Focus on results</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="value">Value</button>
+                    <div class="description-card description" id="desc-value">
+                        <p>Brings measurable ROI, every project, every launch.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Get real value</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="insight">Insight</button>
+                    <div class="description-card description" id="desc-insight">
+                        <p>Deep expertise, sharp analysis, strategic perspective.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Gain insight</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="guidance">Guidance</button>
+                    <div class="description-card description" id="desc-guidance">
+                        <p>We lead you through the complex, every step.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Need guidance?</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="alignment">Alignment</button>
+                    <div class="description-card description" id="desc-alignment">
+                        <p>Your business, design, and dev all moving together.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Stay aligned</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="focus">Focus</button>
+                    <div class="description-card description" id="desc-focus">
+                        <p>Prioritizing what drives success, not distractions.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Sharpen our focus</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="efficiency">Efficiency</button>
+                    <div class="description-card description" id="desc-efficiency">
+                        <p>Less waste, more output, better results.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Boost efficiency</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="transparency">Transparency</button>
+                    <div class="description-card description" id="desc-transparency">
+                        <p>Full visibility into process and costs, always.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">See our process</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="quality">Quality</button>
+                    <div class="description-card description" id="desc-quality">
+                        <p>No shortcuts, just great work and polish.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Demand quality</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="authenticity">Authenticity</button>
+                    <div class="description-card description" id="desc-authenticity">
+                        <p>Honest, real, and true to your brand.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Build authentically</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="innovation">Innovation</button>
+                    <div class="description-card description" id="desc-innovation">
+                        <p>New ideas, better solutions, never stuck.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Drive innovation</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="connection">Connection</button>
+                    <div class="description-card description" id="desc-connection">
+                        <p>Design and tech that bring people together.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Strengthen connection</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="purpose">Purpose</button>
+                    <div class="description-card description" id="desc-purpose">
+                        <p>Every step tied to your business goals.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Define our purpose</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="progress">Progress</button>
+                    <div class="description-card description" id="desc-progress">
+                        <p>Always moving forward, learning, improving.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Keep progressing</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="stability">Stability</button>
+                    <div class="description-card description" id="desc-stability">
+                        <p>Reliable systems, built to last and scale.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Ensure stability</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="adaptability">Adaptability</button>
+                    <div class="description-card description" id="desc-adaptability">
+                        <p>Flexible for new needs and change.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Adapt together</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="resilience">Resilience</button>
+                    <div class="description-card description" id="desc-resilience">
+                        <p>Ready for challenges, built for the long haul.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Build resilience</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="learning">Learning</button>
+                    <div class="description-card description" id="desc-learning">
+                        <p>Always improving, for us and your team.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Grow with us</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="collaboration">Collaboration</button>
+                    <div class="description-card description" id="desc-collaboration">
+                        <p>Real teamwork with you, not just for you.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Collaborate now</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="engagement">Engagement</button>
+                    <div class="description-card description" id="desc-engagement">
+                        <p>High involvement, high ownership, real partnership.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Raise engagement</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="discovery">Discovery</button>
+                    <div class="description-card description" id="desc-discovery">
+                        <p>Always searching for new value and insight.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Start discovery</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="detail">Detail</button>
+                    <div class="description-card description" id="desc-detail">
+                        <p>We sweat the small stuff — so you don't have to.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">See our detail</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="success">Success</button>
+                    <div class="description-card description" id="desc-success">
+                        <p>Your wins = our wins.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Let's succeed</button>
+                    </div>
+                </div>
+
+                <div class="button-wrapper">
+                    <button class="demo-button" id="balance">Balance</button>
+                    <div class="description-card description" id="desc-balance">
+                        <p>Keeping business, users, and team in sync.</p>
+                        <button class="order-btn" onclick="window.location.hash='order-form'">Find balance</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    
+    <script>
+    // Force initialization without waiting for DOMContentLoaded
+    (function() {
+        console.log("Script started");
+        
+        function initButtons() {
+            // Get all buttons and descriptions
+            const buttons = document.querySelectorAll(".demo-button");
+            const descriptions = document.querySelectorAll(".description");
+            
+            console.log("Found elements:", {buttons: buttons.length, descriptions: descriptions.length});
+    
+            function closeAllActive() {
+                buttons.forEach(button => button.classList.remove("active"));
+                descriptions.forEach(desc => desc.classList.remove("show"));
+                // Reset active state of wrappers
+                document.querySelectorAll('.button-wrapper.active').forEach(wrapper => wrapper.classList.remove('active'));
+            }
+    
+            function handleButtonClick(button, description, event) {
+                console.log("Button clicked:", button.id);
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                
+                const isActive = button.classList.contains("active");
+                closeAllActive();
+                
+                if (!isActive) {
+                    // Set active classes
+                    button.classList.add("active");
+                    description.classList.add("show");
+                    button.closest('.button-wrapper').classList.add('active');
+                    
+                    // Apply main button color to CTA button
+                    applyCTAButtonColor(button, description);
+                    
+                    // Adjust card position immediately after showing
+                    adjustCardPosition(description, button);
+                    
+                    console.log("Opened:", button.id);
+                } else {
+                    console.log("Closed:", button.id);
+                }
+            }
+    
+            function adjustCardPosition(description, button) {
+                // Reset all positioning classes and previous inline styles for left/transform
+                description.classList.remove('adjust-left', 'adjust-offset');
+                description.style.left = '50%'; // Return to default CSS value
+                description.style.transform = 'translateX(-50%)'; // Return to default CSS value
+                description.style.right = 'auto'; // Ensure right is not set
+
+                // Get actual dimensions and positions after applying default styles
+                const cardRect = description.getBoundingClientRect();
+                const container = description.closest('.demo-section');
+                
+                if (!container) {
+                    console.error("'.demo-section' container not found for positioning.");
+                    return;
+                }
+                const containerRect = container.getBoundingClientRect();
+            
+                let transformAdjustmentPx = 0;
+            
+                // Check if card extends beyond right edge of container
+                if (cardRect.right > containerRect.right) {
+                    transformAdjustmentPx = -(cardRect.right - containerRect.right); // Shift left
+                } 
+                // Check if card extends beyond left edge of container
+                // (use else if since simultaneous overflow on both edges is unlikely for centered element)
+                else if (cardRect.left < containerRect.left) {
+                    transformAdjustmentPx = containerRect.left - cardRect.left; // Shift right
+                }
+            
+                if (transformAdjustmentPx !== 0) {
+                    // Apply correction to existing translateX(-50%)
+                    description.style.transform = "translateX(calc(-50% + " + transformAdjustmentPx + "px))";
+                }
+                // If transformAdjustmentPx === 0, then original positioning (translateX(-50%)) is correct
+            }
+    
+            function applyCTAButtonColor(mainButton, description) {
+                const ctaButton = description.querySelector('.order-btn');
+                if (!ctaButton) return;
+                
+                const buttonId = mainButton.id;
+                let backgroundColor = '';
+                let textColor = '';
+                let shadowColor = '';
+                
+                // Determine main button color by ID
+                if (['trust', 'value', 'authenticity', 'quality', 'purpose'].includes(buttonId)) {
+                    backgroundColor = '#67CF3A';
+                    textColor = 'black';
+                    shadowColor = '103, 207, 58';
+                } else if (['clarity', 'transparency', 'guidance', 'insight', 'discovery'].includes(buttonId)) {
+                    backgroundColor = '#F6DF49';
+                    textColor = 'black';
+                    shadowColor = '246, 223, 73';
+                } else if (['reliability', 'efficiency', 'results', 'focus', 'detail'].includes(buttonId)) {
+                    backgroundColor = '#FFB221';
+                    textColor = 'black';
+                    shadowColor = '255, 178, 33';
+                } else if (['partnership', 'growth', 'collaboration', 'engagement', 'alignment', 'learning'].includes(buttonId)) {
+                    backgroundColor = '#3560E2';
+                    textColor = 'white';
+                    shadowColor = '53, 96, 226';
+                } else if (['innovation', 'progress', 'adaptability', 'connection', 'stability'].includes(buttonId)) {
+                    backgroundColor = '#1FC37E';
+                    textColor = 'white';
+                    shadowColor = '31, 195, 126';
+                } else if (['impact', 'success', 'resilience', 'balance'].includes(buttonId)) {
+                    backgroundColor = '#FF6237';
+                    textColor = 'white';
+                    shadowColor = '255, 98, 55';
+                }
+                
+                // Apply styles to CTA button
+                ctaButton.style.background = backgroundColor;
+                ctaButton.style.color = textColor;
+                
+                // Apply colored shadow to description card
+                description.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(' + shadowColor + ', 1.0)';
+            }
+    
+            // Attach events for all buttons
+            buttons.forEach((button, index) => {
+                const buttonId = button.id;
+                const description = document.getElementById("desc-" + buttonId);
+                
+                if (button && description) {
+                    // Set z-index: first button (index 0) gets highest z-index
+                    const zIndex = 1000 - index;
+                    const wrapper = button.closest('.button-wrapper');
+                    if (wrapper) {
+                        wrapper.style.zIndex = zIndex;
+                    }
+                    
+                    button.onclick = null;
+                    
+                    // Button click event
+                    button.addEventListener("click", function(e) {
+                        handleButtonClick(button, description, e);
+                    }, true);
+                    
+                    button.addEventListener("mousedown", function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }, true);
+                    
+                    button.onclick = function(e) {
+                        handleButtonClick(button, description, e);
+                    };
+                    
+                    // Description card click event - closes the card
+                    description.addEventListener("click", function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log("Description clicked, closing:", button.id);
+                        button.classList.remove("active");
+                        description.classList.remove("show");
+                    });
+                    
+                    // Mouse leave description card event - closes the card
+                    description.addEventListener("mouseleave", function(e) {
+                        console.log("Mouse left description, closing:", button.id);
+                        button.classList.remove("active");
+                        description.classList.remove("show");
+                    });
+                }
+            });
+    
+            // Close on outside click
+            document.addEventListener("click", function(event) {
+                const isInsideContainer = event.target.closest(".button-container");
+                if (!isInsideContainer) {
+                    closeAllActive();
+                }
+            }, true);
+            
+            // Recalculate positions on window resize
+            window.addEventListener("resize", function() {
+                const activeDescriptions = document.querySelectorAll(".description-card.show");
+                activeDescriptions.forEach(description => {
+                    const wrapper = description.closest('.button-wrapper');
+                    const button = wrapper ? wrapper.querySelector('.demo-button') : null;
+                    if (button) {
+                        adjustCardPosition(description, button);
+                    }
+                });
+            });
+            
+            console.log("Button handlers attached for", buttons.length, "buttons");
+        }
+    
+        // Try to initialize immediately
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initButtons);
+        } else {
+            initButtons();
+        }
+        
+        // Additional attempt after 100ms
+        setTimeout(initButtons, 100);
+        
+        // Another attempt after 500ms for slow loading
+        setTimeout(initButtons, 500);
+    })();
+    </script>
