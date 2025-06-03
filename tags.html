@@ -70,7 +70,6 @@
                     pointer-events: auto !important;
                     font-family: "Lato", Arial, sans-serif !important;
                     display: block !important;
-                    transition: background 0.3s !important;
                 }
         
                 .demo-button.active {
@@ -924,19 +923,32 @@ let isSendHeightBusy = false;
         body.style.height = originalBodyStyleHeight;
         docElement.style.height = originalDocStyleHeight;
 
-        // Fallback if measurement is still clearly wrong (e.g. zero or too small)
-        if (measuredHeight < 10 && demoSection) { // Check if very small and demoSection exists
-            console.warn("tags.html: Measured height was very small, attempting demoSection.scrollHeight.");
-            measuredHeight = Math.max(measuredHeight, demoSection.scrollHeight);
+        // Fallback if measurement is still clearly wrong
+        let initialAttemptHeight = measuredHeight; // Store the docElement.scrollHeight
+
+        if (initialAttemptHeight < 10) {
+            console.warn(source + ": docElement.scrollHeight (" + initialAttemptHeight + ") is < 10. Trying fallbacks.");
+            let bestFallback = initialAttemptHeight;
+
+            if (demoSection) {
+                bestFallback = Math.max(bestFallback, demoSection.scrollHeight);
+            }
+            // Now check body scroll/offset if bestFallback is still too low
+            if (bestFallback < 10) {
+                bestFallback = Math.max(bestFallback, body.scrollHeight);
+            }
+            if (bestFallback < 10) {
+                bestFallback = Math.max(bestFallback, body.offsetHeight);
+            }
+            
+            // If after all sensible fallbacks, it's still < 10, enforce a minimum of 10.
+            // This avoids using docElement.offsetHeight which can cause infinite loops.
+            measuredHeight = Math.max(bestFallback, 10); 
+            if (measuredHeight !== initialAttemptHeight) {
+                 console.warn(source + ": Fallback resulted in measuredHeight: " + measuredHeight);
+            }
         }
-        if (measuredHeight < 10) { // General fallback if still too small
-             measuredHeight = Math.max(
-                body.scrollHeight, body.offsetHeight,
-                docElement.offsetHeight // Use offsetHeight here if scrollHeight was 0 or too small
-            );
-            console.warn("tags.html: Measured height remained very small, used aggressive fallback.");
-        }
-        
+
         const finalHeight = Math.max(measuredHeight, 50); // Ensure a practical minimum height
 
         window.parent.postMessage(
