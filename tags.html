@@ -854,92 +854,136 @@
 </script>
 
 <script>
-// Auto-height script for iframe integration (Figma Sites)
-function sendHeight() {
-    const demoSection = document.querySelector('.demo-section');
-    const body = document.body;
-    const docElement = document.documentElement;
-    let measuredHeight = 0;
+let isSendHeightBusy = false;
 
-    if (demoSection) {
-        // Store original inline styles if they exist, otherwise default to empty string
-        const originalDemoSectionStyleHeight = demoSection.style.height || '';
+    // Auto-height script for iframe integration (Figma Sites)
+    function sendHeight() {
+        if (isSendHeightBusy) {
+            console.log("tags.html - sendHeight is busy, skipping call.");
+            return;
+        }
+        isSendHeightBusy = true;
+
+        const demoSection = document.querySelector('.demo-section');
+        const body = document.body;
+        const docElement = document.documentElement; // HTML element
+        let measuredHeight = 0;
+
+        // Store original inline styles (or empty string if no inline style was set)
+        const originalDocStyleHeight = docElement.style.height || '';
         const originalBodyStyleHeight = body.style.height || '';
-        const originalDocElementStyleHeight = docElement.style.height || '';
+        const originalDemoSectionStyleHeight = demoSection ? (demoSection.style.height || '') : '';
 
-        // Temporarily allow shrinking by setting heights to auto
+        // TEMP: Enhanced logging to track window size and height changes
+        console.log("🔍 tags.html - Window dimensions:", {
+            windowWidth: window.innerWidth,
+            windowHeight: window.innerHeight,
+            docScrollHeight: docElement.scrollHeight,
+            bodyScrollHeight: body.scrollHeight,
+            demoSectionScrollHeight: demoSection ? demoSection.scrollHeight : 'N/A'
+        });
+
+        // Temporarily allow shrinking by setting relevant heights to auto
         docElement.style.height = 'auto';
         body.style.height = 'auto';
-        demoSection.style.height = 'auto';
+        if (demoSection) {
+            demoSection.style.height = 'auto';
+        }
         
-        // Force reflow to ensure 'auto' heights are applied before measurement
-        // Reading an offset property like offsetHeight triggers a reflow.
-        demoSection.offsetHeight; 
+        // Force browser reflow AFTER all 'auto' heights are set.
+        // Reading an offset property from the outermost element is a common way to trigger this.
+        docElement.offsetHeight; 
 
-        // Measure the scrollHeight of the demoSection
-        measuredHeight = demoSection.scrollHeight;
+        // Measure the scrollHeight of the entire documentElement (HTML tag)
+        measuredHeight = docElement.scrollHeight;
+        
+        // TEMP: Log measured height AFTER auto setting
+        console.log("🔍 tags.html - Height after 'auto' setting:", {
+            measuredFromDocElement: measuredHeight,
+            docElementScrollHeight: docElement.scrollHeight,
+            bodyScrollHeight: body.scrollHeight,
+            demoSectionScrollHeight: demoSection ? demoSection.scrollHeight : 'N/A'
+        });
         
         // Restore original inline styles
-        demoSection.style.height = originalDemoSectionStyleHeight;
+        if (demoSection) {
+            demoSection.style.height = originalDemoSectionStyleHeight;
+        }
         body.style.height = originalBodyStyleHeight;
-        docElement.style.height = originalDocElementStyleHeight;
-    } else {
-        // Fallback measurement if .demo-section is not found
-        measuredHeight = Math.max(
-            document.body.scrollHeight, document.body.offsetHeight,
-            document.documentElement.scrollHeight, document.documentElement.offsetHeight
+        docElement.style.height = originalDocStyleHeight;
+
+        // Fallback if measurement is still clearly wrong (e.g. zero or too small)
+        if (measuredHeight < 10 && demoSection) { // Check if very small and demoSection exists
+            console.warn("tags.html: Measured height was very small, attempting demoSection.scrollHeight.");
+            measuredHeight = Math.max(measuredHeight, demoSection.scrollHeight);
+        }
+        if (measuredHeight < 10) { // General fallback if still too small
+             measuredHeight = Math.max(
+                body.scrollHeight, body.offsetHeight,
+                docElement.offsetHeight // Use offsetHeight here if scrollHeight was 0 or too small
+            );
+            console.warn("tags.html: Measured height remained very small, used aggressive fallback.");
+        }
+        
+        const finalHeight = Math.max(measuredHeight, 50); // Ensure a practical minimum height
+
+        // TEMP: Enhanced final logging
+        console.log("🚀 tags.html - SENDING HEIGHT:", {
+            finalHeight: finalHeight,
+            windowWidth: window.innerWidth,
+            timestamp: new Date().toLocaleTimeString()
+        });
+
+        window.parent.postMessage(
+            { 
+                type: "setIframeHeight", 
+                height: finalHeight,
+                source: "tags-html" // Identifier for this specific iframe
+            },
+            "*"
         );
-        console.warn("tags.html: .demo-section not found, using fallback height measurement.");
+        
+        console.log("tags.html - Height sent to parent:", finalHeight);
+
+        // Release the busy flag after a short delay to allow the current event loop to complete
+        // and to prevent immediate re-triggering by observers reacting to style restoration.
+        setTimeout(() => {
+            isSendHeightBusy = false;
+        }, 150); // Increased delay slightly
     }
 
-    // Ensure a minimum height is reported (e.g., 50px from content's perspective)
-    const finalHeight = Math.max(measuredHeight, 50);
+    // Send height on load
+    window.addEventListener('load', sendHeight);
 
-    // Send height to parent window
-    window.parent.postMessage(
-        { 
-            type: "setIframeHeight", 
-            height: finalHeight,
-            source: "tags-html" // Identifier for this specific iframe
-        },
-        "*"
-    );
-    
-    console.log("tags.html - Height sent to parent:", finalHeight);
-}
+    // Send height on resize
+    window.addEventListener('resize', sendHeight);
 
-// Send height on load
-window.addEventListener('load', sendHeight);
-
-// Send height on resize
-window.addEventListener('resize', sendHeight);
-
-// Send height when content changes (button interactions)
-const observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-        if (mutation.type === 'childList' || mutation.type === 'attributes') {
-            setTimeout(sendHeight, 100); // Small delay to ensure DOM is updated
-        }
+    // Send height when content changes (button interactions)
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                setTimeout(sendHeight, 100); // Small delay to ensure DOM is updated
+            }
+        });
     });
-});
 
-// Start observing changes
-observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['class', 'style']
-});
+    // Start observing changes
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
 
-// Fallback: send height periodically
-setInterval(sendHeight, 2000);
+    // Fallback: send height periodically
+    setInterval(sendHeight, 2000);
 
-// Send initial height immediately
-if (document.readyState === 'complete') {
-    sendHeight();
-} else {
-    window.addEventListener('DOMContentLoaded', sendHeight);
-}
+    // Send initial height immediately
+    if (document.readyState === 'complete') {
+        sendHeight();
+    } else {
+        window.addEventListener('DOMContentLoaded', sendHeight);
+    }
 </script>
 
 <script>

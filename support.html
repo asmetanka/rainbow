@@ -698,48 +698,61 @@
     </script>
 
     <script>
+    let isSendHeightBusy = false;
+
     // Auto-height script for iframe integration (Figma Sites)
     function sendHeight() {
+        if (isSendHeightBusy) {
+            console.log("support.html - sendHeight is busy, skipping call.");
+            return;
+        }
+        isSendHeightBusy = true;
+
         const demoSection = document.querySelector('.demo-section');
         const body = document.body;
-        const docElement = document.documentElement;
+        const docElement = document.documentElement; // HTML element
         let measuredHeight = 0;
 
+        // Store original inline styles (or empty string if no inline style was set)
+        const originalDocStyleHeight = docElement.style.height || '';
+        const originalBodyStyleHeight = body.style.height || '';
+        const originalDemoSectionStyleHeight = demoSection ? (demoSection.style.height || '') : '';
+
+        // Temporarily allow shrinking by setting relevant heights to auto
+        docElement.style.height = 'auto';
+        body.style.height = 'auto';
         if (demoSection) {
-            // Store original inline styles if they exist, otherwise default to empty string
-            const originalDemoSectionStyleHeight = demoSection.style.height || '';
-            const originalBodyStyleHeight = body.style.height || '';
-            const originalDocElementStyleHeight = docElement.style.height || '';
-
-            // Temporarily allow shrinking by setting heights to auto
-            docElement.style.height = 'auto';
-            body.style.height = 'auto';
             demoSection.style.height = 'auto';
-            
-            // Force reflow to ensure 'auto' heights are applied before measurement
-            // Reading an offset property like offsetHeight triggers a reflow.
-            demoSection.offsetHeight; 
-
-            // Measure the scrollHeight of the demoSection
-            measuredHeight = demoSection.scrollHeight;
-            
-            // Restore original inline styles
-            demoSection.style.height = originalDemoSectionStyleHeight;
-            body.style.height = originalBodyStyleHeight;
-            docElement.style.height = originalDocElementStyleHeight;
-        } else {
-            // Fallback measurement if .demo-section is not found
-            measuredHeight = Math.max(
-                document.body.scrollHeight, document.body.offsetHeight,
-                document.documentElement.scrollHeight, document.documentElement.offsetHeight
-            );
-            console.warn("support.html: .demo-section not found, using fallback height measurement.");
         }
+        
+        // Force browser reflow AFTER all 'auto' heights are set.
+        docElement.offsetHeight; 
 
-        // Ensure a minimum height is reported (e.g., 50px from content's perspective)
-        const finalHeight = Math.max(measuredHeight, 50);
+        // Measure the scrollHeight of the entire documentElement (HTML tag)
+        measuredHeight = docElement.scrollHeight;
+        
+        // Restore original inline styles
+        if (demoSection) {
+            demoSection.style.height = originalDemoSectionStyleHeight;
+        }
+        body.style.height = originalBodyStyleHeight;
+        docElement.style.height = originalDocStyleHeight;
 
-        // Send height to parent window
+        // Fallback if measurement is still clearly wrong (e.g. zero or too small)
+        if (measuredHeight < 10 && demoSection) { 
+            console.warn("support.html: Measured height was very small, attempting demoSection.scrollHeight.");
+            measuredHeight = Math.max(measuredHeight, demoSection.scrollHeight);
+        }
+        if (measuredHeight < 10) { 
+             measuredHeight = Math.max(
+                body.scrollHeight, body.offsetHeight,
+                docElement.offsetHeight 
+            );
+            console.warn("support.html: Measured height remained very small, used aggressive fallback.");
+        }
+        
+        const finalHeight = Math.max(measuredHeight, 50); // Ensure a practical minimum height
+
         window.parent.postMessage(
             { 
                 type: "setIframeHeight", 
@@ -750,6 +763,10 @@
         );
         
         console.log("support.html - Height sent to parent:", finalHeight);
+
+        setTimeout(() => {
+            isSendHeightBusy = false;
+        }, 150);
     }
 
     // Send height on load
