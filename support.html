@@ -491,7 +491,15 @@
             console.log("Found elements:", {buttons: buttons.length, descriptions: descriptions.length});
     
             function closeAllActive() {
-                buttons.forEach(button => button.classList.remove("active"));
+                buttons.forEach(button => {
+                    // Убираем transition для мгновенного переключения
+                    button.style.transition = "none";
+                    button.classList.remove("active");
+                    // Возвращаем transition после короткой задержки
+                    setTimeout(() => {
+                        button.style.transition = "background 0.3s";
+                    }, 50);
+                });
                 descriptions.forEach(desc => desc.classList.remove("show"));
                 // Reset active state of wrappers
                 document.querySelectorAll('.button-wrapper.active').forEach(wrapper => wrapper.classList.remove('active'));
@@ -507,13 +515,16 @@
                 closeAllActive();
                 
                 if (!isActive) {
+                    // Убираем transition для мгновенного переключения
+                    button.style.transition = "none";
+                    
                     // Set active classes
                     button.classList.add("active");
                     description.classList.add("show");
                     button.closest('.button-wrapper').classList.add('active');
 
-                    // Устанавливаем минимальную ширину description-card равной ширине кнопки
-                    description.style.minWidth = button.offsetWidth + "px";
+                    // Устанавливаем минимальную ширину description-card: максимум из 280px и ширины кнопки
+                    description.style.minWidth = Math.max(280, button.offsetWidth) + "px";
 
                     // Apply main button color to CTA button
                     applyCTAButtonColor(button, description);
