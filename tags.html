@@ -70,6 +70,7 @@
                     pointer-events: auto !important;
                     font-family: "Lato", Arial, sans-serif !important;
                     display: block !important;
+                    transition: none !important;
                 }
         
                 .demo-button.active {
@@ -666,7 +667,7 @@
                 
                 // Возвращаем transition после короткой задержки
                 setTimeout(() => {
-                    button.style.transition = "background 0.3s";
+                    button.style.transition = "none";
                     button.style.background = ""; // Убираем inline-стиль, чтобы работали CSS-правила
                 }, 50);
             });
