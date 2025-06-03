@@ -9,14 +9,12 @@ html, body {
 }
 
 #wrapper {
-  padding: 0;
-  margin: 0;
+  padding-top: 0; /* provides guaranteed top margin */
   box-sizing: border-box;
-  height: 100vh;
+  height: 100vh; /* stretch the wrapper */
   display: flex;
   align-items: flex-start;
-  justify-content: flex-end;
-  width: 100%;
+  justify-content: center;
 }
 
 .hero-word-container {
@@ -30,12 +28,12 @@ html, body {
   letter-spacing: -4px;
   white-space: nowrap;
   overflow: visible;
-  width: auto;
-  max-width: none;
+  width: 100%;
+  max-width: 100vw;
   font-size: 0;
-  text-align: right;
-  padding: 0;
-  margin: 0;
+  text-align: left;
+  padding-left: 0;
+  margin-left: 0;
 }
 
 .word-part {
@@ -578,5 +576,3 @@ async function changeWord() {
 const initialInterval = 1500; 
 setTimeout(changeWord, initialInterval);
 </script>
-</body>
-</html>
