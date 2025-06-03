@@ -30,7 +30,7 @@
             padding: 0;
             overflow: visible;
             height: 100%;
-            background: #010214;
+            background: transparent;
         }
         
         .demo-section {
@@ -103,19 +103,19 @@
                 /* Rainbow Green (#67CF3A) */
                 #ux-design:not(.active), #ui-design:not(.active), #web-design:not(.active), #mobile-app-design:not(.active), #interaction-design:not(.active), #visual-design:not(.active), #micro-interactions:not(.active) {
                     background: #67CF3A !important;
-                    color: black !important;
+                    color: #18181b !important;
                 }
         
                 /* Rainbow Yellow (#F7D80E) */
                 #user-research:not(.active), #usability-testing:not(.active), #accessibility:not(.active), #persona-development:not(.active), #user-journeys:not(.active), #scenarios:not(.active) {
                     background: #F7D80E !important;
-                    color: black !important;
+                    color: #18181b !important;
                 }
         
                 /* Rainbow Gold (#FFB221) */
                 #prototyping:not(.active), #information-architecture:not(.active), #wireframes:not(.active), #onboarding-flows:not(.active), #ux-writing:not(.active) {
                     background: #FFB221 !important;
-                    color: black !important;
+                    color: #18181b !important;
                 }
         
                 /* Rainbow Blue (#3560E2) */
@@ -411,7 +411,7 @@
             <div class="button-wrapper">
                 <button class="demo-button" id="wireframes">Wireframes</button>
                 <div class="description-card description" id="desc-wireframes">
-                    <p>Creates simple, black & white "skeletons" of your product's pages or screens. We use them to validate layouts, content hierarchy, and user flows <em>before</em> visual design begins.</p>
+                    <p>Creates simple, #18181b & white "skeletons" of your product's pages or screens. We use them to validate layouts, content hierarchy, and user flows <em>before</em> visual design begins.</p>
                     <button class="order-btn" onclick="window.location.hash='order-form'">Outline product with clear wireframes</button>
                 </div>
             </div>
@@ -728,15 +728,15 @@
             // Determine main button color by ID
             if (['ux-design', 'ui-design', 'web-design', 'mobile-app-design', 'interaction-design', 'visual-design', 'micro-interactions'].includes(buttonId)) {
                 backgroundColor = '#67CF3A';
-                textColor = 'black';
+                textColor = '#18181b';
                 shadowColor = '103, 207, 58';
             } else if (['user-research', 'usability-testing', 'accessibility', 'persona-development', 'user-journeys', 'scenarios'].includes(buttonId)) {
                 backgroundColor = '#F7D80E';
-                textColor = 'black';
+                textColor = '#18181b';
                 shadowColor = '246, 223, 73';
             } else if (['prototyping', 'information-architecture', 'wireframes', 'onboarding-flows', 'ux-writing'].includes(buttonId)) {
                 backgroundColor = '#FFB221';
-                textColor = 'black';
+                textColor = '#18181b';
                 shadowColor = '255, 178, 33';
             } else if (['figma-expertise', 'agile-design', 'iterative-design', 'lean-product-design', 'design-sprints', 'developer-handoff', 'co-creation', 'design-workshops'].includes(buttonId)) {
                 backgroundColor = '#3560E2';
