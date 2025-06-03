@@ -148,7 +148,7 @@
                     transform: translateX(-50%);
                     background: #e7e5e4;
                     color: #18181b;
-                    border-radius: 22px;
+                    border-radius: 28px;
                     padding: 40px 24px 20px 24px;
                     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.50), 0 4px 16px rgba(147, 51, 234, 1.0);
                     min-width: 280px;
@@ -659,7 +659,10 @@
                 button.classList.add("active");
                 description.classList.add("show");
                 button.closest('.button-wrapper').classList.add('active');
-                
+
+                // Устанавливаем минимальную ширину description-card равной ширине кнопки
+                description.style.minWidth = button.offsetWidth + "px";
+
                 // Apply main button color to CTA button
                 applyCTAButtonColor(button, description);
                 
