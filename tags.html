@@ -874,15 +874,6 @@ let isSendHeightBusy = false;
         const originalBodyStyleHeight = body.style.height || '';
         const originalDemoSectionStyleHeight = demoSection ? (demoSection.style.height || '') : '';
 
-        // TEMP: Enhanced logging to track window size and height changes
-        console.log("🔍 tags.html - Window dimensions:", {
-            windowWidth: window.innerWidth,
-            windowHeight: window.innerHeight,
-            docScrollHeight: docElement.scrollHeight,
-            bodyScrollHeight: body.scrollHeight,
-            demoSectionScrollHeight: demoSection ? demoSection.scrollHeight : 'N/A'
-        });
-
         // Temporarily allow shrinking by setting relevant heights to auto
         docElement.style.height = 'auto';
         body.style.height = 'auto';
@@ -896,14 +887,6 @@ let isSendHeightBusy = false;
 
         // Measure the scrollHeight of the entire documentElement (HTML tag)
         measuredHeight = docElement.scrollHeight;
-        
-        // TEMP: Log measured height AFTER auto setting
-        console.log("🔍 tags.html - Height after 'auto' setting:", {
-            measuredFromDocElement: measuredHeight,
-            docElementScrollHeight: docElement.scrollHeight,
-            bodyScrollHeight: body.scrollHeight,
-            demoSectionScrollHeight: demoSection ? demoSection.scrollHeight : 'N/A'
-        });
         
         // Restore original inline styles
         if (demoSection) {
@@ -926,13 +909,6 @@ let isSendHeightBusy = false;
         }
         
         const finalHeight = Math.max(measuredHeight, 50); // Ensure a practical minimum height
-
-        // TEMP: Enhanced final logging
-        console.log("🚀 tags.html - SENDING HEIGHT:", {
-            finalHeight: finalHeight,
-            windowWidth: window.innerWidth,
-            timestamp: new Date().toLocaleTimeString()
-        });
 
         window.parent.postMessage(
             { 
