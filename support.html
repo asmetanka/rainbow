@@ -781,13 +781,13 @@
         window.parent.postMessage(
             { 
                 type: "setIframeHeight", 
-                height: finalHeight,
+                height: finalHeight + 30, // Add 30px buffer for shadows
                 source: "support-html" // Identifier for this specific iframe
             },
             "*"
         );
         
-        console.log("support.html - Height sent to parent:", finalHeight);
+        console.log("support.html - Height sent to parent:", finalHeight + 30);
 
         setTimeout(() => {
             isSendHeightBusy = false;
