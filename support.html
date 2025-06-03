@@ -700,25 +700,43 @@
     <script>
     // Auto-height script for iframe integration (Figma Sites)
     function sendHeight() {
-        const height = Math.max(
-            document.body.scrollHeight,
-            document.body.offsetHeight,
-            document.documentElement.clientHeight,
-            document.documentElement.scrollHeight,
-            document.documentElement.offsetHeight
-        );
-        
+        const demoSection = document.querySelector('.demo-section');
+        let measuredHeight = 0;
+
+        if (demoSection) {
+            const originalDemoSectionStyleHeight = demoSection.style.height;
+            demoSection.style.height = 'auto';
+            
+            // Reading an offset property can help ensure the browser has reflowed
+            // demoSection.offsetHeight; 
+
+            measuredHeight = demoSection.scrollHeight;
+            demoSection.style.height = originalDemoSectionStyleHeight;
+        } else {
+            // Fallback if .demo-section is somehow not found
+            measuredHeight = Math.max(
+                document.body.scrollHeight,
+                document.body.offsetHeight,
+                document.documentElement.scrollHeight,
+                document.documentElement.offsetHeight
+            );
+            console.warn("support.html: .demo-section not found, using fallback height measurement.");
+        }
+
+        // Ensure a minimum height is reported (e.g., 50px)
+        const finalHeight = Math.max(measuredHeight, 50); 
+
         // Send height to parent window
         window.parent.postMessage(
             { 
                 type: "setIframeHeight", 
-                height: height,
-                source: "support-html" // identifier for this specific iframe
+                height: finalHeight,
+                source: "support-html" // Identifier for this specific iframe
             },
             "*"
         );
         
-        console.log("Height sent to parent:", height);
+        console.log("support.html - Height sent to parent:", finalHeight);
     }
 
     // Send height on load
