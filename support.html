@@ -687,3 +687,61 @@
         setTimeout(initButtons, 500);
     })();
     </script>
+
+    <script>
+    // Auto-height script for iframe integration (Figma Sites)
+    function sendHeight() {
+        const height = Math.max(
+            document.body.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.clientHeight,
+            document.documentElement.scrollHeight,
+            document.documentElement.offsetHeight
+        );
+        
+        // Send height to parent window
+        window.parent.postMessage(
+            { 
+                type: "setIframeHeight", 
+                height: height,
+                source: "support-html" // identifier for this specific iframe
+            },
+            "*"
+        );
+        
+        console.log("Height sent to parent:", height);
+    }
+
+    // Send height on load
+    window.addEventListener('load', sendHeight);
+    
+    // Send height on resize
+    window.addEventListener('resize', sendHeight);
+    
+    // Send height when content changes (button interactions)
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                setTimeout(sendHeight, 100); // Small delay to ensure DOM is updated
+            }
+        });
+    });
+    
+    // Start observing changes
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
+    
+    // Fallback: send height periodically
+    setInterval(sendHeight, 2000);
+    
+    // Send initial height immediately
+    if (document.readyState === 'complete') {
+        sendHeight();
+    } else {
+        window.addEventListener('DOMContentLoaded', sendHeight);
+    }
+    </script>
