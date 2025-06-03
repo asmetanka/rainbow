@@ -642,10 +642,33 @@
             buttons.forEach(button => {
                 // Убираем transition для мгновенного переключения
                 button.style.transition = "none";
+                
+                // Принудительно устанавливаем исходный цвет фона перед убиранием класса active
+                const buttonId = button.id;
+                if (['ux-design', 'ui-design', 'web-design', 'mobile-app-design', 'interaction-design', 'visual-design', 'micro-interactions'].includes(buttonId)) {
+                    button.style.background = '#67CF3A';
+                } else if (['user-research', 'usability-testing', 'accessibility', 'persona-development', 'user-journeys', 'scenarios'].includes(buttonId)) {
+                    button.style.background = '#F7D80E';
+                } else if (['prototyping', 'information-architecture', 'wireframes', 'onboarding-flows', 'ux-writing'].includes(buttonId)) {
+                    button.style.background = '#FFB221';
+                } else if (['figma-expertise', 'agile-design', 'iterative-design', 'lean-product-design', 'design-sprints', 'developer-handoff', 'co-creation', 'design-workshops'].includes(buttonId)) {
+                    button.style.background = '#3560E2';
+                } else if (['design-systems', 'style-guides', 'component-libraries', 'design-tokens', 'scalable-solutions'].includes(buttonId)) {
+                    button.style.background = '#1FC37E';
+                } else if (['saas-product-design', 'enterprise-ux', 'b2c-design', 'b2b-design', 'startup-design'].includes(buttonId)) {
+                    button.style.background = '#FF6237';
+                } else if (['brand-identity', 'product-audit', 'design-strategy', 'consulting-audit', 'business-driven-design', 'brand-storytelling', 'trust-transparency'].includes(buttonId)) {
+                    button.style.background = '#845DD9';
+                } else if (['dashboards', 'data-visualization', 'motion-video-design', 'pitch-deck-design'].includes(buttonId)) {
+                    button.style.background = '#F54242';
+                }
+                
                 button.classList.remove("active");
+                
                 // Возвращаем transition после короткой задержки
                 setTimeout(() => {
                     button.style.transition = "background 0.3s";
+                    button.style.background = ""; // Убираем inline-стиль, чтобы работали CSS-правила
                 }, 50);
             });
             descriptions.forEach(desc => desc.classList.remove("show"));

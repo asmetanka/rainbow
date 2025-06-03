@@ -494,10 +494,29 @@
                 buttons.forEach(button => {
                     // Убираем transition для мгновенного переключения
                     button.style.transition = "none";
+                    
+                    // Принудительно устанавливаем исходный цвет фона перед убиранием класса active
+                    const buttonId = button.id;
+                    if (['trust', 'value', 'authenticity', 'quality', 'purpose'].includes(buttonId)) {
+                        button.style.background = '#67CF3A';
+                    } else if (['clarity', 'transparency', 'guidance', 'insight', 'discovery'].includes(buttonId)) {
+                        button.style.background = '#F7D80E';
+                    } else if (['reliability', 'efficiency', 'results', 'focus', 'detail'].includes(buttonId)) {
+                        button.style.background = '#FFB221';
+                    } else if (['partnership', 'growth', 'collaboration', 'engagement', 'alignment', 'learning'].includes(buttonId)) {
+                        button.style.background = '#3560E2';
+                    } else if (['innovation', 'progress', 'adaptability', 'connection', 'stability'].includes(buttonId)) {
+                        button.style.background = '#1FC37E';
+                    } else if (['impact', 'success', 'resilience', 'balance'].includes(buttonId)) {
+                        button.style.background = '#FF6237';
+                    }
+                    
                     button.classList.remove("active");
+                    
                     // Возвращаем transition после короткой задержки
                     setTimeout(() => {
                         button.style.transition = "background 0.3s";
+                        button.style.background = ""; // Убираем inline-стиль, чтобы работали CSS-правила
                     }, 50);
                 });
                 descriptions.forEach(desc => desc.classList.remove("show"));
