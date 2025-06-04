@@ -1,29 +1,29 @@
-# 🎨 Руководство по интеграции с Figma Sites
+# 🎨 Figma Sites Integration Guide
 
-## 📋 Обзор
+## 📋 Overview
 
-Все HTML файлы в проекте (`support.html`, `tags.html`, `design.html`, `something.html`) теперь включают необходимые скрипты для полноценной интеграции с Figma Sites через iframe.
+All HTML files in the project (`support.html`, `tags.html`, `design.html`, `something.html`) now include the necessary scripts for full integration with Figma Sites via iframe.
 
-## 🔧 Что уже настроено в HTML файлах
+## 🔧 What's Already Configured in HTML Files
 
-### 1. Автоматическая настройка высоты iframe
-- Автоматическое определение и отправка высоты контента
-- Отслеживание изменений размеров при взаимодействии пользователя
-- Поддержка адаптивного дизайна
+### 1. Automatic iframe Height Adjustment
+- Automatic detection and sending of content height
+- Tracking of size changes during user interaction
+- Support for responsive design
 
-### 2. Родительская коммуникация
-- Двусторонняя связь между iframe и родительским окном Figma
-- Отправка событий взаимодействия (клики, активация кнопок)
-- Обработка команд от родительского окна
+### 2. Parent Communication
+- Two-way communication between the iframe and the parent Figma window
+- Sending interaction events (clicks, button activations)
+- Processing commands from the parent window
 
-### 3. Отслеживание событий
-- Клики по кнопкам и элементам интерфейса
-- Изменения состояния компонентов
-- Готовность iframe к работе
+### 3. Event Tracking
+- Clicks on buttons and interface elements
+- Component state changes
+- Iframe readiness for operation
 
-## 📄 Кастомный код для Figma Sites
+## 📄 Custom Code for Figma Sites
 
-### В настройках Figma Sites добавьте следующий JavaScript код:
+### In Figma Sites settings, add the following JavaScript code:
 
 ```javascript
 // Figma Sites - Кастомный код для управления iframe
@@ -142,19 +142,19 @@
 })();
 ```
 
-## 🚀 Инструкции по добавлению в Figma Sites
+## 🚀 Instructions for Adding to Figma Sites
 
-### 1. В редакторе Figma Sites:
-1. Откройте настройки сайта
-2. Перейдите в раздел "Custom Code" или "Кастомный код"
-3. Вставьте код выше в секцию "Head" или "Body"
+### 1. In the Figma Sites editor:
+1. Open site settings
+2. Go to the "Custom Code" section
+3. Paste the code above into the "Head" or "Body" section
 
-### 2. Для iframe интеграции:
-1. Создайте iframe элемент в Figma
-2. Укажите URL ваших HTML файлов в атрибуте `src`
-3. Установите начальные размеры iframe (они будут автоматически корректироваться)
+### 2. For iframe integration:
+1. Create an iframe element in Figma
+2. Specify the URL of your HTML files in the `src` attribute
+3. Set the initial dimensions of the iframe (they will be automatically adjusted)
 
-### 3. Пример iframe настройки:
+### 3. Example iframe setup:
 ```html
 <iframe 
     src="https://your-domain.com/support.html" 
@@ -164,19 +164,19 @@
 </iframe>
 ```
 
-## 📊 Возможности отслеживания
+## 📊 Tracking Capabilities
 
-Добавленные скрипты позволяют отслеживать:
-- ✅ Клики по кнопкам с передачей ID и текста
-- ✅ Изменения размеров контента
-- ✅ Готовность iframe к работе
-- ✅ Пользовательские взаимодействия
+The added scripts allow tracking of:
+- ✅ Button clicks with ID and text transmission
+- ✅ Content size changes
+- ✅ Iframe readiness
+- ✅ User interactions
 
-## 🎯 Дополнительные возможности
+## 🎯 Additional Features
 
-### Интеграция с аналитикой:
+### Analytics Integration:
 ```javascript
-// Добавьте в обработчик buttonActivated:
+// Add to the buttonActivated handler:
 gtag('event', 'button_click', {
     'button_id': buttonId,
     'source': source,
@@ -184,32 +184,32 @@ gtag('event', 'button_click', {
 });
 ```
 
-### Кастомные темы:
+### Custom Themes:
 ```javascript
-// Смена темы для всех iframe:
+// Change theme for all iframes:
 window.FigmaIframeManager.changeTheme('dark');
 ```
 
-## 🔍 Отладка
+## 🔍 Debugging
 
-Все скрипты включают подробное логирование в консоль браузера:
-- Сообщения о готовности iframe
-- Информация о передаче высоты
-- Логи взаимодействий пользователя
-- Отчеты об ошибках
+All scripts include detailed logging in the browser console:
+- Iframe ready messages
+- Information about height transmission
+- User interaction logs
+- Error reports
 
-Откройте DevTools (F12) для просмотра логов.
+Open DevTools (F12) to view logs.
 
-## ⚡ Оптимизация производительности
+## ⚡ Performance Optimization
 
-- Автоматическое дебаунсирование для частых обновлений высоты
-- Кеширование ссылок на iframe для быстрого доступа
-- Минимальная частота отправки сообщений
-- Резервные механизмы для надежности
+- Automatic debouncing for frequent height updates
+- Caching of iframe links for quick access
+- Minimum message sending frequency
+- Backup mechanisms for reliability
 
-## 🚨 Важные замечания
+## 🚨 Important Notes
 
-1. **Безопасность**: Код проверяет источники сообщений
-2. **Совместимость**: Работает во всех современных браузерах
-3. **Производительность**: Оптимизирован для минимального влияния на загрузку
-4. **Надежность**: Включает резервные механизмы и обработку ошибок 
+1. **Security**: The code checks message sources
+2. **Compatibility**: Works in all modern browsers
+3. **Performance**: Optimized for minimal impact on loading
+4. **Reliability**: Includes backup mechanisms and error handling 

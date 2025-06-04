@@ -1,5 +1,13 @@
 # Project Documentation
 
+## Recent Updates
+
+-   **Internationalization**: All Russian comments within HTML files (`support.html`, `tags.html`) have been translated to English. The `FIGMA_INTEGRATION_GUIDE.md` has also been fully translated to English.
+-   **Code Hygiene & Fixes**:
+    -   Fixed a JavaScript runtime issue related to an undefined `source` variable in `support.html` and `tags.html` (relevant for iframe communication).
+    -   Improved CSS formatting consistency in `tags.html`.
+-   These changes enhance project maintainability and accessibility for an English-speaking audience.
+
 This project includes several HTML components designed for integration into other platforms, particularly Figma Sites, via iframes. Key features include animated text transitions and interactive button displays.
 
 ## HTML Components
@@ -133,11 +141,28 @@ const actionWords = [
 Modify the HTML structure directly within these files to change button text, descriptions, and call-to-action button behavior.
 
 ### Timing Adjustments (`something.html` & `design.html`)
+The initial delay and subsequent transition intervals can be adjusted towards the end of the `<script>` block in each file:
+
+*In `something.html`:*
 ```javascript
-// Change animation intervals
-const initialInterval = 1500; // First transition delay (something.html)
-const initialInterval = 3000; // First transition delay (design.html) // Note: This seems to be a duplicate, likely meant for design.html
-const nextInterval = 3000;    // Subsequent transitions (both files)
+// Initial delay before first word change in this iframe.
+// "SOMETHING" should change first.
+const initialInterval = 1500; 
+setTimeout(changeWord, initialInterval);
+// ... later in changeWord function:
+// const nextInterval = 3000; 
+// setTimeout(changeWord, nextInterval);
+```
+
+*In `design.html`:*
+```javascript
+// Initial delay before first word change in this iframe.
+// "DESIGN" should change second, after "SOMETHING" and a pause.
+const initialInterval = 3000;
+setTimeout(changeWord, initialInterval);
+// ... later in changeWord function:
+// const nextInterval = 3000;
+// setTimeout(changeWord, nextInterval);
 ```
 
 ### Styling
