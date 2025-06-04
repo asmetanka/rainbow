@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# IDE/Editor specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Log files
+*.log
+
+# Build output
+/build/
+/dist/
+
+# Dependency directories
+/node_modules/
+/vendor/ 
