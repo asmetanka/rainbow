@@ -1,0 +1,16 @@
+{
+  "name": "rainbow",
+  "version": "1.0.0",
+  "description": "-   **Internationalization**: All Russian comments within HTML files (`support.html`, `tags.html`) have been translated to English. The `FIGMA_INTEGRATION_GUIDE.md` has also been fully translated to English. -   **Code Hygiene & Fixes**:     -   Fixed a JavaScript runtime issue related to an undefined `source` variable in `support.html` and `tags.html` (relevant for iframe communication).     -   Improved CSS formatting consistency in `tags.html`. -   These changes enhance project maintainability and accessibility for an English-speaking audience.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "jest": "^30.0.0"
+  }
+}
