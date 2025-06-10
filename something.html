@@ -147,10 +147,10 @@ function getRandomInterval(min, max) {
 }
 
 /**
- * Finds the first common letter between two words, excluding a specific letter at a specific position if specified.
+ * Finds the first common letter between two words, excluding all occurrences of a specific letter if specified.
  * @param {string} word1 - First word.
  * @param {string} word2 - Second word.
- * @param {null|{char: string, indexInCurrentWord: number}} excludedInfo - Information about the excluded letter (letter and its index in word1).
+ * @param {null|{char: string, indexInCurrentWord: number}} excludedInfo - Information about the excluded letter.
  * @returns {null|{letter: string, positionInWord1: number, positionInWord2: number}} Object with common letter and its positions or null.
  */
 function findCommonLetters(word1, word2, excludedInfo = null) {
@@ -161,11 +161,9 @@ function findCommonLetters(word1, word2, excludedInfo = null) {
     const charInWord1Lowercase = letters1[i];
     const originalCharInWord1 = word1.charAt(i);
 
-    // Check for exclusion
-    if (excludedInfo &&
-        charInWord1Lowercase === excludedInfo.char.toLowerCase() &&
-        i === excludedInfo.indexInCurrentWord) {
-      continue; // Skip this specific character at this specific position in word1
+    // Check for exclusion - exclude ALL occurrences of the previously used letter
+    if (excludedInfo && charInWord1Lowercase === excludedInfo.char.toLowerCase()) {
+      continue; // Skip ALL occurrences of this character
     }
 
     // Exclude spaces and check if the letter exists in the second word
