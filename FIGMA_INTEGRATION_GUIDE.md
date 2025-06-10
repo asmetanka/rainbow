@@ -26,29 +26,29 @@ All HTML files in the project (`support.html`, `tags.html`, `design.html`, `some
 ### In Figma Sites settings, add the following JavaScript code:
 
 ```javascript
-// Figma Sites - Кастомный код для управления iframe
+// Figma Sites - Custom code for managing the iframe
 (function() {
     console.log("Figma Sites iframe manager initialized");
     
-    // Функция для настройки высоты iframe
+    // Function to set iframe height
     function setIframeHeight(iframe, height, source) {
         if (iframe && height > 0) {
-            const newHeight = Math.max(height, 100); // Минимальная высота 100px
+            const newHeight = Math.max(height, 100); // Minimum height 100px
             iframe.style.height = newHeight + "px";
             console.log(`Height set for ${source}: ${newHeight}px`);
             
-            // Добавляем небольшую задержку для плавности
+            // Add a small delay for smoothness
             setTimeout(() => {
                 iframe.style.transition = "height 0.3s ease";
             }, 100);
         }
     }
     
-    // Функция для поиска iframe по источнику
+    // Function to find iframe by source
     function findIframeBySource(source) {
         const iframes = document.querySelectorAll('iframe');
         for (let iframe of iframes) {
-            // Проверяем src iframe для определения источника
+            // Check the iframe src to determine the source
             if (iframe.src.includes('support.html') && source === 'support-html') return iframe;
             if (iframe.src.includes('tags.html') && source === 'tags-html') return iframe;
             if (iframe.src.includes('design.html') && source === 'design-html') return iframe;
@@ -57,9 +57,9 @@ All HTML files in the project (`support.html`, `tags.html`, `design.html`, `some
         return null;
     }
     
-    // Обработчик сообщений от iframe
+    // Message handler from iframe
     window.addEventListener("message", function(event) {
-        // Проверяем источник сообщения для безопасности
+        // Verify message source for security
         if (!event.data || typeof event.data !== 'object') return;
         
         console.log("Message received from iframe:", event.data);
@@ -74,7 +74,7 @@ All HTML files in the project (`support.html`, `tags.html`, `design.html`, `some
                 
             case 'iframeReady':
                 console.log(`Iframe ready: ${source}`);
-                // Отправляем подтверждение готовности
+                // Send readiness confirmation
                 if (iframe && iframe.contentWindow) {
                     iframe.contentWindow.postMessage({
                         type: 'init',
@@ -85,14 +85,14 @@ All HTML files in the project (`support.html`, `tags.html`, `design.html`, `some
                 
             case 'buttonActivated':
                 console.log(`Button activated in ${source}: ${buttonId}`);
-                // Здесь можно добавить аналитику или другие действия
-                // Например, отправка событий в Google Analytics:
+                // You can add analytics or other actions here
+                // For example, sending events to Google Analytics:
                 // gtag('event', 'button_click', { 'button_id': buttonId, 'source': source });
                 break;
                 
             case 'interaction':
                 console.log(`User interaction in ${source}:`, target);
-                // Обработка пользовательских взаимодействий
+                // Handle user interactions
                 break;
                 
             default:
@@ -100,7 +100,7 @@ All HTML files in the project (`support.html`, `tags.html`, `design.html`, `some
         }
     }, false);
     
-    // Функция для отправки команд в iframe
+    // Function to send commands to the iframe
     function sendToIframe(source, message) {
         const iframe = findIframeBySource(source);
         if (iframe && iframe.contentWindow) {
@@ -109,9 +109,9 @@ All HTML files in the project (`support.html`, `tags.html`, `design.html`, `some
         }
     }
     
-    // Обработка изменения размеров окна
+    // Handling window resizing
     window.addEventListener('resize', function() {
-        // Уведомляем все iframe об изменении размеров
+        // Notify all iframes about the size change
         ['support-html', 'tags-html', 'design-html', 'something-html'].forEach(source => {
             sendToIframe(source, {
                 type: 'resize',
@@ -121,7 +121,7 @@ All HTML files in the project (`support.html`, `tags.html`, `design.html`, `some
         });
     });
     
-    // Функция для смены темы (если потребуется)
+    // Function to change the theme (if needed)
     function changeTheme(theme) {
         ['support-html', 'tags-html', 'design-html', 'something-html'].forEach(source => {
             sendToIframe(source, {
@@ -131,7 +131,7 @@ All HTML files in the project (`support.html`, `tags.html`, `design.html`, `some
         });
     }
     
-    // Экспортируем функции для использования в Figma Sites
+    // Export functions for use in Figma Sites
     window.FigmaIframeManager = {
         sendToIframe: sendToIframe,
         changeTheme: changeTheme,
