@@ -834,10 +834,6 @@
                     e.stopPropagation();
                 }, true);
                 
-                button.onclick = function(e) {
-                    handleButtonClick(button, description, e);
-                };
-                
                 // Description card click event - closes the card
                 description.addEventListener("click", function(e) {
                     e.preventDefault();
