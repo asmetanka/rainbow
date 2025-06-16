@@ -2,10 +2,12 @@
 
 ## Recent Updates
 
+-   **Safari iframe Fix**: Added comprehensive Safari-specific fixes for iframe height calculation issues in Figma Sites. Safari has unique behavior with height calculation and ResizeObserver that required special handling.
 -   **Internationalization**: All Russian comments within HTML files (`support.html`, `tags.html`) have been translated to English. The `FIGMA_INTEGRATION_GUIDE.md` has also been fully translated to English.
 -   **Code Hygiene & Fixes**:
     -   Fixed a JavaScript runtime issue related to an undefined `source` variable in `support.html` and `tags.html` (relevant for iframe communication).
     -   Improved CSS formatting consistency in `tags.html`.
+    -   Added `.DS_Store` and other system files to `.gitignore`.
 -   These changes enhance project maintainability and accessibility for an English-speaking audience.
 
 This project includes several HTML components designed for integration into other platforms, particularly Figma Sites, via iframes. Key features include animated text transitions and interactive button displays.
@@ -192,3 +194,35 @@ The transition algorithm is designed for maximum reliability:
 4.  **Fallback Level 3**: Returns to current word (emergency fallback)
 
 Testing shows that **100% of transitions** work reliably, with over **90% using the preferred bridge letter animation**.
+
+## Safari iframe Support
+
+Safari requires special handling for iframe height calculation in Figma Sites. The project includes several Safari-specific fixes:
+
+### Files
+- `figma-iframe-safari-fix.js` - Comprehensive Safari fix (referenced in HTML files)
+- `figma-safari-clean.js` - Clean, production-ready Safari fix
+- `safari-iframe-example.html` - Example implementation with inline fixes
+
+### Safari Issues Addressed
+1. **Height calculation inconsistencies** - Safari calculates `scrollHeight` and `offsetHeight` differently
+2. **ResizeObserver behavior** - Safari's ResizeObserver has different timing than Chrome
+3. **Animation timing** - Safari needs longer delays for DOM changes to settle
+4. **Layout recalculation** - Safari requires forced reflows for accurate measurements
+
+### How It Works
+The Safari fix:
+- Detects Safari browser automatically
+- Uses multiple height calculation methods with fallbacks
+- Implements longer timeouts for DOM settling
+- Forces layout recalculation before measurements
+- Adds buffer space to prevent content cutoff
+- Overrides the standard `sendHeight` function when Safari is detected
+
+### Usage
+Include the Safari fix script after your main iframe scripts:
+```html
+<script src="figma-safari-clean.js"></script>
+```
+
+The fix is automatic - it detects Safari and only runs the enhanced height calculation on Safari browsers.

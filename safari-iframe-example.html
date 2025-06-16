@@ -3,218 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safari-Compatible Iframe Integration for Figma Sites</title>
+    <title>Safari iframe Example - Clean Version</title>
     <style>
         body {
             margin: 0;
             padding: 20px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
+            background: #f8f9fa;
         }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .iframe-container {
+        .demo-section {
+            padding: 16px 16px 120px 16px;
             position: relative;
             width: 100%;
-            margin: 20px 0;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
+            height: 100%;
+            box-sizing: border-box;
         }
         
-        .iframe-label {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.7);
+        .demo-button {
+            padding: 18px 24px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 20px;
+            cursor: pointer;
+            border: none;
+            outline: none;
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            z-index: 10;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 8px;
+            transition: all 0.3s ease;
         }
         
-        /* Safari-specific iframe styles */
-        iframe {
-            width: 100% !important;
-            border: none !important;
-            display: block !important;
-            overflow: hidden !important;
-            /* Safari: Prevent iframe scrolling */
-            scrolling: no;
-            /* Safari: Force hardware acceleration */
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
-        .section {
-            padding: 30px;
-        }
-        
-        .code-block {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
+        .description-card {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border-radius: 12px;
             padding: 20px;
-            margin: 20px 0;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 14px;
-            overflow-x: auto;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 200;
+            min-width: 280px;
+            max-width: 400px;
         }
         
-        .warning {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
+        .description-card.show {
+            opacity: 1;
+            visibility: visible;
+            top: 70px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🍎 Safari-Compatible Iframe Integration</h1>
-            <p>Example implementation for Figma Sites with Safari fixes</p>
-        </div>
+    <div class="demo-section">
+        <h1>Safari iframe Test</h1>
+        <p>Click button to test height resizing in Safari:</p>
         
-        <div class="section">
-            <div class="warning">
-                <h3>⚠️ Safari Iframe Issues</h3>
-                <p>Safari has known issues with iframe resizing in Figma Sites:</p>
-                <ul>
-                    <li>Stricter postMessage security policies</li>
-                    <li>Different ResizeObserver behavior</li>
-                    <li>Cross-origin communication limitations</li>
-                    <li>Document height calculation differences</li>
-                </ul>
-            </div>
-            
-            <h2>📋 Implementation Steps</h2>
-            
-            <h3>Step 1: Add Safari Fix Script to Figma Sites</h3>
-            <p>Copy and paste this code into your Figma Sites custom code section (in the &lt;head&gt; or before &lt;/body&gt;):</p>
-            <div class="code-block">
-// Copy the content from figma-iframe-safari-fix.js
-// This script will automatically detect Safari and apply necessary fixes
-            </div>
-            
-            <h3>Step 2: Update Your HTML Files</h3>
-            <p>Ensure your iframe source HTML files have Safari-compatible scripts. Here are the key points:</p>
-            
-            <div class="success">
-                <h4>✅ Safari-Compatible Features</h4>
-                <ul>
-                    <li>Enhanced postMessage handling with Safari detection</li>
-                    <li>Improved height calculation with fallbacks</li>
-                    <li>Cross-browser compatible ResizeObserver usage</li>
-                    <li>Debounced height reporting to prevent infinite loops</li>
-                </ul>
-            </div>
-            
-            <h3>Step 3: Test Your Iframes</h3>
-            <p>Below are example iframes that should work correctly in Safari:</p>
-            
-            <!-- Example iframe implementations -->
-            <div class="iframe-container">
-                <div class="iframe-label">support.html</div>
-                <iframe 
-                    src="support.html" 
-                    width="100%" 
-                    height="400"
-                    scrolling="no"
-                    frameborder="0"
-                    title="Support Demo">
-                </iframe>
-            </div>
-            
-            <div class="iframe-container">
-                <div class="iframe-label">tags.html</div>
-                <iframe 
-                    src="tags.html" 
-                    width="100%" 
-                    height="400"
-                    scrolling="no"
-                    frameborder="0"
-                    title="Tags Demo">
-                </iframe>
-            </div>
-            
-            <h3>Step 4: Debugging in Safari</h3>
-            <p>Open Safari Developer Tools (Web Inspector) to monitor:</p>
-            <ul>
-                <li>Console messages from the Safari fix script</li>
-                <li>PostMessage communication between iframe and parent</li>
-                <li>Height change events and calculations</li>
-                <li>Any security warnings or errors</li>
-            </ul>
-            
-            <div class="code-block">
-// Enable verbose logging in Safari Developer Tools
-// Look for messages like:
-// "Safari fix: Height set for support-html: 450px"
-// "Safari fix: Message received: {type: 'setIframeHeight', ...}"
+        <div class="button-container">
+            <div class="button-wrapper">
+                <button class="demo-button" id="test-button">Test Button</button>
+                <div class="description-card" id="description-card">
+                    <h3>Description Card</h3>
+                    <p>This card should cause the iframe to resize in Safari.</p>
+                    <p>In Chrome this works automatically, but Safari needs special handling.</p>
+                </div>
             </div>
         </div>
     </div>
-    
-    <!-- Include the Safari fix script -->
-    <script src="figma-iframe-safari-fix.js"></script>
-    
+
     <script>
-        // Additional Safari-specific initialization
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Safari iframe example page loaded');
+        const source = "safari-iframe-example";
+        let isSendHeightBusy = false;
+
+        // Auto-height script for iframe integration (Figma Sites)
+        function sendHeight() {
+            if (isSendHeightBusy) {
+                console.log("sendHeight is busy, skipping call.");
+                return;
+            }
+            isSendHeightBusy = true;
+
+            const demoSection = document.querySelector('.demo-section');
+            const body = document.body;
+            const docElement = document.documentElement;
+            let measuredHeight = 0;
+
+            // Store original inline styles
+            const originalDocStyleHeight = docElement.style.height || '';
+            const originalBodyStyleHeight = body.style.height || '';
+            const originalDemoSectionStyleHeight = demoSection ? (demoSection.style.height || '') : '';
+
+            // Temporarily allow shrinking by setting relevant heights to auto
+            docElement.style.height = 'auto';
+            body.style.height = 'auto';
+            if (demoSection) {
+                demoSection.style.height = 'auto';
+            }
             
-            // Force iframe reinitialization after page load
-            setTimeout(function() {
-                const iframes = document.querySelectorAll('iframe');
-                console.log(`Found ${iframes.length} iframes on page`);
+            // Force browser reflow AFTER all 'auto' heights are set.
+            docElement.offsetHeight; 
+
+            // Measure the scrollHeight of the entire documentElement (HTML tag)
+            measuredHeight = docElement.scrollHeight;
+            
+            // Restore original inline styles
+            if (demoSection) {
+                demoSection.style.height = originalDemoSectionStyleHeight;
+            }
+            body.style.height = originalBodyStyleHeight;
+            docElement.style.height = originalDocStyleHeight;
+
+            const finalHeight = Math.max(measuredHeight, 50);
+
+            window.parent.postMessage({
+                type: "setIframeHeight", 
+                height: finalHeight,
+                source: source
+            }, "*");
+            
+            console.log("Height sent to parent:", finalHeight);
+
+            setTimeout(() => {
+                isSendHeightBusy = false;
+            }, 150);
+        }
+
+        // Button click functionality
+        document.getElementById('test-button').addEventListener('click', function() {
+            const card = document.getElementById('description-card');
+            card.classList.toggle('show');
+            
+            // Trigger height update after animation
+            setTimeout(sendHeight, 350);
+        });
+
+        // Standard event listeners
+        window.addEventListener('load', sendHeight);
+        window.addEventListener('resize', sendHeight);
+
+        // Initial height send
+        if (document.readyState === 'complete') {
+            sendHeight();
+        } else {
+            window.addEventListener('DOMContentLoaded', sendHeight);
+        }
+    </script>
+
+    <!-- Safari-specific fixes inline -->
+    <script>
+        (function() {
+            console.log("Safari iframe fix loaded");
+            
+            // Detect Safari
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            
+            if (!isSafari) {
+                console.log("Not Safari, skipping Safari-specific fixes");
+                return;
+            }
+            
+            console.log("Safari detected, applying fixes");
+            
+            // Safari-specific height calculation
+            function getSafariHeight() {
+                const body = document.body;
+                const html = document.documentElement;
                 
-                iframes.forEach((iframe, index) => {
-                    // Ensure Safari-specific attributes are set
-                    iframe.setAttribute('scrolling', 'no');
-                    iframe.setAttribute('frameborder', '0');
-                    iframe.style.overflow = 'hidden';
-                    iframe.style.border = 'none';
+                // Multiple height calculation methods for Safari
+                const heights = [
+                    body.scrollHeight,
+                    body.offsetHeight,
+                    html.scrollHeight,
+                    html.offsetHeight,
+                    html.clientHeight
+                ];
+                
+                // Safari sometimes reports 0 or very small heights initially
+                const validHeights = heights.filter(h => h > 10);
+                const maxHeight = Math.max(...validHeights);
+                
+                // Additional check for visible content
+                const allElements = document.querySelectorAll('*');
+                let maxElementBottom = 0;
+                
+                for (let element of allElements) {
+                    if (element.offsetParent !== null) { // Only visible elements
+                        const rect = element.getBoundingClientRect();
+                        const elementBottom = rect.bottom + window.pageYOffset;
+                        maxElementBottom = Math.max(maxElementBottom, elementBottom);
+                    }
+                }
+                
+                // Use the larger of the calculated heights
+                return Math.max(maxHeight, maxElementBottom, 100); // Minimum 100px
+            }
+            
+            // Enhanced sendHeight function for Safari
+            function safariSendHeight() {
+                if (window.isSendHeightBusy) {
+                    console.log("Safari fix - sendHeight is busy, skipping call.");
+                    return;
+                }
+                window.isSendHeightBusy = true;
+                
+                // Force layout recalculation in Safari
+                document.body.style.display = 'none';
+                document.body.offsetHeight; // Trigger reflow
+                document.body.style.display = '';
+                
+                // Small delay to let Safari settle
+                setTimeout(() => {
+                    const height = getSafariHeight();
                     
-                    console.log(`Iframe ${index + 1} configured for Safari compatibility`);
-                });
-            }, 500);
-        });
-        
-        // Safari-specific resize handling
-        let resizeTimer;
-        window.addEventListener('resize', function() {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(function() {
-                console.log('Window resized, Safari iframes should adjust');
-            }, 250);
-        });
+                    // Add buffer for Safari (it tends to cut off content)
+                    const safariBuffer = 20;
+                    const finalHeight = height + safariBuffer;
+                    
+                    window.parent.postMessage({
+                        type: "setIframeHeight",
+                        height: finalHeight,
+                        source: window.source || "safari-iframe",
+                        safari: true // Mark as Safari-specific
+                    }, "*");
+                    
+                    console.log("Safari - Height sent to parent:", finalHeight);
+                    
+                    setTimeout(() => {
+                        window.isSendHeightBusy = false;
+                    }, 200); // Longer delay for Safari
+                }, 100);
+            }
+            
+            // Override the global sendHeight function for Safari
+            window.sendHeight = safariSendHeight;
+            
+            // Safari-specific click handler with delayed height update
+            document.addEventListener('click', function(event) {
+                const target = event.target;
+                const isButton = target.classList.contains('demo-button') || 
+                                target.closest('.demo-button');
+                
+                if (isButton) {
+                    console.log("Safari - Button interaction detected");
+                    // Multiple delayed updates to catch animation states
+                    setTimeout(safariSendHeight, 100);  // Quick initial update
+                    setTimeout(safariSendHeight, 350);  // After fade-out
+                    setTimeout(safariSendHeight, 650);  // After fade-in
+                    setTimeout(safariSendHeight, 1000); // Final safety check
+                }
+            });
+            
+            // Safari periodic check
+            setInterval(safariSendHeight, 2000);
+            
+            console.log("Safari iframe fixes applied successfully");
+        })();
     </script>
 </body>
 </html> 

@@ -1018,14 +1018,6 @@ let isSendHeightBusy = false;
 (function() {
     console.log("Parent communication script initialized");
     
-    // Detect Safari for enhanced compatibility
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    const isWebKit = /webkit/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
-    
-    if (isSafari || isWebKit) {
-        console.log("Safari detected, applying enhanced iframe compatibility");
-    }
-    
     // Listen for messages from parent window (Figma)
     window.addEventListener("message", function(event) {
         console.log("Message received from parent:", event.data);
@@ -1037,8 +1029,8 @@ let isSendHeightBusy = false;
                     // Handle resize requests from parent
                     if (event.data.width || event.data.height) {
                         console.log("Resize request received:", event.data);
-                        // Trigger height recalculation with Safari-specific delay
-                        setTimeout(sendHeight, isSafari ? 150 : 100);
+                        // Trigger height recalculation
+                        setTimeout(sendHeight, 100);
                     }
                     break;
                     
@@ -1053,14 +1045,7 @@ let isSendHeightBusy = false;
                 case 'init':
                     // Handle initialization from parent
                     console.log("Parent initialization received");
-                    // Safari: Send height with extra delay to ensure proper loading
-                    setTimeout(sendHeight, isSafari ? 200 : 50);
-                    break;
-                    
-                case 'requestHeight':
-                    // Handle explicit height requests from parent (Safari enhancement)
-                    console.log("Height request received from parent");
-                    setTimeout(sendHeight, isSafari ? 100 : 50);
+                    sendHeight();
                     break;
                     
                 default:
@@ -1071,69 +1056,31 @@ let isSendHeightBusy = false;
     
     // Send ready signal to parent
     function sendReadySignal() {
-        const readyMessage = {
+        window.parent.postMessage({
             type: "iframeReady",
-            source: source,
-            timestamp: Date.now(),
-            browser: isSafari ? 'safari' : 'other',
-            userAgent: navigator.userAgent
-        };
-        
-        try {
-            window.parent.postMessage(readyMessage, "*");
-            console.log("Ready signal sent to parent:", readyMessage);
-        } catch (error) {
-            console.warn("Could not send ready signal:", error);
-            // Safari fallback: try again after delay
-            if (isSafari) {
-                setTimeout(() => {
-                    try {
-                        window.parent.postMessage(readyMessage, "*");
-                        console.log("Safari: Ready signal sent on retry");
-                    } catch (e) {
-                        console.error("Safari: Failed to send ready signal on retry:", e);
-                    }
-                }, 500);
-            }
-        }
+            source: "tags-html",
+            timestamp: Date.now()
+        }, "*");
+        console.log("Ready signal sent to parent");
     }
     
     // Send ready signal when everything is loaded
     if (document.readyState === 'complete') {
-        // Safari: Additional delay to ensure iframe is fully ready
-        setTimeout(sendReadySignal, isSafari ? 200 : 0);
+        sendReadySignal();
     } else {
-        window.addEventListener('load', () => {
-            setTimeout(sendReadySignal, isSafari ? 200 : 0);
-        });
+        window.addEventListener('load', sendReadySignal);
     }
     
     // Enhanced height reporting with debouncing
     let heightReportTimeout;
     function debouncedSendHeight() {
         clearTimeout(heightReportTimeout);
-        // Safari: Longer debounce delay to prevent excessive messaging
-        const delay = isSafari ? 100 : 50;
-        heightReportTimeout = setTimeout(sendHeight, delay);
+        heightReportTimeout = setTimeout(sendHeight, 50);
     }
     
     // Report height changes more efficiently
-    if (window.ResizeObserver) {
-        try {
-            const resizeObserver = new ResizeObserver(debouncedSendHeight);
-            resizeObserver.observe(document.body);
-            if (isSafari) {
-                console.log("Safari: ResizeObserver initialized successfully");
-            }
-        } catch (error) {
-            console.warn("ResizeObserver failed, falling back to interval:", error);
-            // Safari fallback: use interval-based height monitoring
-            setInterval(debouncedSendHeight, isSafari ? 3000 : 2000);
-        }
-    } else {
-        console.warn("ResizeObserver not supported, using interval fallback");
-        setInterval(debouncedSendHeight, isSafari ? 3000 : 2000);
-    }
+    const resizeObserver = new ResizeObserver(debouncedSendHeight);
+    resizeObserver.observe(document.body);
     
     // Report interaction events to parent
     document.addEventListener('click', function(event) {
@@ -1143,22 +1090,34 @@ let isSendHeightBusy = false;
             id: event.target.id
         };
         
-        const interactionMessage = {
+        window.parent.postMessage({
             type: "interaction",
             action: "click",
             target: targetInfo,
-            source: source,
+            source: "tags-html",
             timestamp: Date.now()
-        };
-        
-        try {
-            window.parent.postMessage(interactionMessage, "*");
-        } catch (error) {
-            console.warn("Could not send interaction event:", error);
-        }
+        }, "*");
+    });
+    
+    // Report when buttons are activated
+    const buttons = document.querySelectorAll('.demo-button');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            window.parent.postMessage({
+                type: "buttonActivated",
+                buttonId: button.id,
+                buttonText: button.textContent,
+                source: "tags-html",
+                timestamp: Date.now()
+            }, "*");
+        });
     });
     
 })();
 </script>
+
+<!-- Safari-specific iframe fixes -->
+<script src="figma-iframe-safari-fix.js"></script>
+
 </body>
 </html>

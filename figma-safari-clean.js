@@ -1,216 +1,140 @@
-// Safari iframe fix for Figma Sites - Production Ready
-// Copy this entire script to your Figma Sites custom code section
+/**
+ * Safari iframe height fix for Figma Sites
+ * Resolves height calculation issues specific to Safari browsers
+ * Usage: Include this script after your main height calculation script
+ */
 
 (function() {
     'use strict';
     
-    // Detect Safari and WebKit browsers
+    // Only run in Safari
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    const isWebKit = /webkit/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+    if (!isSafari) return;
     
-    if (!isSafari && !isWebKit) return; // Only run on Safari/WebKit
+    console.log('Safari iframe height fix active');
     
-    console.log("🍎 Safari iframe fix activated");
+    // Safari-specific height calculation with multiple fallbacks
+    function calculateSafariHeight() {
+        const body = document.body;
+        const html = document.documentElement;
+        
+        // Temporarily remove height restrictions
+        const originalBodyHeight = body.style.height;
+        const originalHtmlHeight = html.style.height;
+        
+        body.style.height = 'auto';
+        html.style.height = 'auto';
+        
+        // Force reflow
+        html.offsetHeight;
+        
+        // Get various height measurements
+        const measurements = [
+            body.scrollHeight,
+            body.offsetHeight,
+            html.scrollHeight,
+            html.offsetHeight
+        ].filter(h => h > 0);
+        
+        // Calculate based on visible elements
+        let maxBottom = 0;
+        const visibleElements = Array.from(document.querySelectorAll('*'))
+            .filter(el => el.offsetParent !== null);
+            
+        visibleElements.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const bottom = rect.bottom + window.pageYOffset;
+            maxBottom = Math.max(maxBottom, bottom);
+        });
+        
+        // Restore original heights
+        body.style.height = originalBodyHeight;
+        html.style.height = originalHtmlHeight;
+        
+        const calculatedHeight = Math.max(...measurements, maxBottom);
+        return Math.max(calculatedHeight, 100) + 20; // Add Safari buffer
+    }
     
-    const safariIframeManager = {
-        processedIframes: new Set(),
-        heightCache: new Map(),
+    // Enhanced sendHeight function for Safari
+    function safariSendHeight() {
+        if (window.isSendHeightBusy) return;
         
-        findIframeBySource(source) {
-            const iframes = Array.from(document.querySelectorAll('iframe'));
-            for (let iframe of iframes) {
-                try {
-                    const src = iframe.src || iframe.getAttribute('src') || '';
-                    if (src.includes('support.html') && source === 'support-html') return iframe;
-                    if (src.includes('tags.html') && source === 'tags-html') return iframe;
-                    if (src.includes('design.html') && source === 'design-html') return iframe;
-                    if (src.includes('something.html') && source === 'something-html') return iframe;
-                } catch (e) {
-                    // Ignore security errors
-                }
-            }
-            return null;
-        },
+        window.isSendHeightBusy = true;
         
-        setIframeHeight(iframe, height, source) {
-            if (!iframe || height <= 0) return;
-            
-            const minHeight = 50;
-            const maxHeight = Math.max(window.innerHeight * 3, 2000);
-            const safeHeight = Math.max(Math.min(height, maxHeight), minHeight);
-            
-            // Cache check to avoid unnecessary updates
-            const cacheKey = iframe.src + '-' + source;
-            const cachedHeight = this.heightCache.get(cacheKey);
-            if (cachedHeight && Math.abs(cachedHeight - safeHeight) < 5) return;
-            
-            try {
-                iframe.style.height = safeHeight + 'px';
-                iframe.style.minHeight = minHeight + 'px';
-                iframe.style.overflow = 'hidden';
-                iframe.style.border = 'none';
-                iframe.style.display = 'block';
-                iframe.style.width = '100%';
-                
-                iframe.offsetHeight; // Force reflow
-                this.heightCache.set(cacheKey, safeHeight);
-                
-                console.log(`🍎 Height set: ${source} → ${safeHeight}px`);
-                
-                // Safari workaround: ensure height sticks
-                setTimeout(() => {
-                    if (iframe.style.height !== safeHeight + 'px') {
-                        iframe.style.height = safeHeight + 'px';
-                    }
-                }, 50);
-                
-            } catch (error) {
-                console.warn(`🍎 Height error for ${source}:`, error);
-            }
-        },
+        // Force layout recalculation
+        document.body.style.transform = 'translateZ(0)';
+        document.body.offsetHeight;
+        document.body.style.transform = '';
         
-        handleMessage(event) {
-            try {
-                if (!event.data || typeof event.data !== 'object') return;
-                
-                const { type, source, height, buttonId } = event.data;
-                if (!source) return;
-                
-                const iframe = this.findIframeBySource(source);
-                
-                switch(type) {
-                    case 'setIframeHeight':
-                        if (iframe && height) {
-                            this.setIframeHeight(iframe, height, source);
-                        }
-                        break;
-                        
-                    case 'iframeReady':
-                        console.log(`🍎 Iframe ready: ${source}`);
-                        if (iframe && iframe.contentWindow) {
-                            setTimeout(() => {
-                                try {
-                                    iframe.contentWindow.postMessage({
-                                        type: 'init',
-                                        browser: 'safari',
-                                        timestamp: Date.now()
-                                    }, '*');
-                                } catch (e) {
-                                    // Ignore postMessage errors
-                                }
-                            }, 100);
-                        }
-                        break;
-                        
-                    case 'buttonActivated':
-                    case 'interaction':
-                        // Trigger height recalculation after interactions
-                        setTimeout(() => {
-                            if (iframe && iframe.contentWindow) {
-                                try {
-                                    iframe.contentWindow.postMessage({
-                                        type: 'requestHeight',
-                                        timestamp: Date.now()
-                                    }, '*');
-                                } catch (e) {
-                                    // Ignore postMessage errors
-                                }
-                            }
-                        }, 150);
-                        break;
-                }
-            } catch (error) {
-                // Suppress errors to avoid console spam
+        setTimeout(() => {
+            const height = calculateSafariHeight();
+            
+            window.parent.postMessage({
+                type: "setIframeHeight",
+                height: height,
+                source: window.source || "iframe",
+                safari: true
+            }, "*");
+            
+            setTimeout(() => {
+                window.isSendHeightBusy = false;
+            }, 200);
+        }, 50);
+    }
+    
+    // Override sendHeight if it exists
+    if (typeof window.sendHeight === 'function') {
+        window.sendHeight = safariSendHeight;
+    }
+    
+    // Safari-specific event handling
+    let safariTimeout;
+    function debouncedSafariUpdate() {
+        clearTimeout(safariTimeout);
+        safariTimeout = setTimeout(safariSendHeight, 250);
+    }
+    
+    // Monitor for content changes that affect height
+    const observer = new MutationObserver((mutations) => {
+        const relevantChange = mutations.some(mutation => {
+            if (mutation.type === 'attributes') {
+                const attr = mutation.attributeName;
+                return attr === 'class' || attr === 'style';
             }
+            return mutation.type === 'childList';
+        });
+        
+        if (relevantChange) {
+            debouncedSafariUpdate();
         }
-    };
+    });
     
-    // Set up message listener
-    window.addEventListener("message", function(event) {
-        safariIframeManager.handleMessage(event);
-    }, false);
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style']
+    });
     
-    // Configure iframes for Safari
-    function setupSafariIframes() {
-        const iframes = document.querySelectorAll('iframe');
+    // Handle button clicks with multiple updates
+    document.addEventListener('click', (event) => {
+        const isInteractive = event.target.matches('button, .demo-button, [role="button"]') ||
+                              event.target.closest('button, .demo-button, [role="button"]');
         
-        iframes.forEach(iframe => {
-            if (safariIframeManager.processedIframes.has(iframe)) return;
-            
-            // Safari-specific attributes
-            iframe.style.overflow = 'hidden';
-            iframe.style.border = 'none';
-            iframe.style.display = 'block';
-            iframe.style.width = '100%';
-            iframe.setAttribute('scrolling', 'no');
-            iframe.setAttribute('frameborder', '0');
-            
-            // Lazy loading fix
-            if (!iframe.src && iframe.getAttribute('data-src')) {
-                iframe.src = iframe.getAttribute('data-src');
-            }
-            
-            safariIframeManager.processedIframes.add(iframe);
-        });
-    }
+        if (isInteractive) {
+            // Multiple updates to catch different animation phases
+            setTimeout(safariSendHeight, 50);   // Immediate
+            setTimeout(safariSendHeight, 300);  // After fadeout
+            setTimeout(safariSendHeight, 600);  // After fadein
+        }
+    });
     
-    // Window resize handler
-    function handleWindowResize() {
-        const iframes = document.querySelectorAll('iframe');
-        iframes.forEach(iframe => {
-            if (iframe.contentWindow) {
-                try {
-                    iframe.contentWindow.postMessage({
-                        type: 'resize',
-                        width: window.innerWidth,
-                        height: window.innerHeight
-                    }, '*');
-                } catch (e) {
-                    // Ignore postMessage errors
-                }
-            }
-        });
-    }
+    // Initial setup
+    window.addEventListener('load', () => {
+        setTimeout(safariSendHeight, 300);
+    });
     
-    // Initialize Safari fixes
-    function init() {
-        setupSafariIframes();
-        
-        // Watch for new iframes
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mutation => {
-                if (mutation.type === 'childList') {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1) {
-                            if (node.tagName === 'IFRAME' || (node.querySelectorAll && node.querySelectorAll('iframe').length > 0)) {
-                                setTimeout(setupSafariIframes, 100);
-                            }
-                        }
-                    });
-                }
-            });
-        });
-        
-        observer.observe(document.body, { childList: true, subtree: true });
-        
-        // Debounced window resize
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(handleWindowResize, 250);
-        });
-        
-        console.log("🍎 Safari iframe manager initialized");
-    }
-    
-    // Start when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-    
-    // Backup initialization
-    setTimeout(init, 1000);
+    // Periodic check for Safari
+    setInterval(safariSendHeight, 3000);
     
 })(); 

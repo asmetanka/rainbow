@@ -1,296 +1,180 @@
 /**
- * Safari-specific fixes for iframe resizing in Figma Sites
- * 
- * Safari has stricter security policies and different behavior with:
- * - postMessage API
- * - ResizeObserver
- * - Cross-origin iframe communication
- * - Document height calculation
- * 
- * This script should be added to your Figma Sites custom code section.
+ * Safari-specific fixes for iframe height calculation in Figma Sites
+ * This script addresses Safari's unique behavior with ResizeObserver and height calculation
  */
 
 (function() {
-    'use strict';
+    console.log("Safari iframe fix loaded");
     
-    console.log("Safari iframe fix initialized");
-    
-    // Detect Safari browser
+    // Detect Safari
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    const isWebKit = /webkit/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
     
-    if (!isSafari && !isWebKit) {
+    if (!isSafari) {
         console.log("Not Safari, skipping Safari-specific fixes");
         return;
     }
     
-    console.log("Safari detected, applying iframe fixes");
+    console.log("Safari detected, applying fixes");
     
-    // Safari-specific iframe height management
-    const safariIframeManager = {
-        processedIframes: new Set(),
-        heightCache: new Map(),
+    // Safari-specific height calculation
+    function getSafariHeight() {
+        const body = document.body;
+        const html = document.documentElement;
         
-        // Enhanced iframe finder for Safari
-        findIframeBySource: function(source) {
-            const iframes = Array.from(document.querySelectorAll('iframe'));
-            for (let iframe of iframes) {
-                try {
-                    const src = iframe.src || iframe.getAttribute('src') || '';
-                    if (src.includes('support.html') && source === 'support-html') return iframe;
-                    if (src.includes('tags.html') && source === 'tags-html') return iframe;
-                    if (src.includes('design.html') && source === 'design-html') return iframe;
-                    if (src.includes('something.html') && source === 'something-html') return iframe;
-                } catch (e) {
-                    console.warn("Error checking iframe src:", e);
-                }
-            }
-            return null;
-        },
+        // Multiple height calculation methods for Safari
+        const heights = [
+            body.scrollHeight,
+            body.offsetHeight,
+            html.scrollHeight,
+            html.offsetHeight,
+            html.clientHeight
+        ];
         
-        // Safari-specific height setting with additional checks
-        setIframeHeight: function(iframe, height, source) {
-            if (!iframe || height <= 0) {
-                console.warn(`Safari fix: Invalid iframe or height for ${source}`);
-                return;
-            }
-            
-            const minHeight = 50;
-            const maxHeight = Math.max(window.innerHeight * 3, 2000); // Prevent unreasonable heights
-            const safeHeight = Math.max(Math.min(height, maxHeight), minHeight);
-            
-            // Cache the height to avoid unnecessary updates
-            const cacheKey = iframe.src + '-' + source;
-            const cachedHeight = this.heightCache.get(cacheKey);
-            
-            if (cachedHeight && Math.abs(cachedHeight - safeHeight) < 5) {
-                return; // Skip if height change is minimal
-            }
-            
-            try {
-                // Force iframe to have specific attributes for Safari
-                iframe.style.height = safeHeight + 'px';
-                iframe.style.minHeight = minHeight + 'px';
-                iframe.style.maxHeight = maxHeight + 'px';
-                iframe.style.overflow = 'hidden';
-                iframe.style.border = 'none';
-                iframe.style.display = 'block';
-                iframe.style.width = '100%';
-                
-                // Safari-specific: Force layout recalculation
-                iframe.offsetHeight; // Trigger reflow
-                
-                // Update cache
-                this.heightCache.set(cacheKey, safeHeight);
-                
-                console.log(`Safari fix: Height set for ${source}: ${safeHeight}px`);
-                
-                // Additional Safari workaround: slight delay for complex layouts
-                setTimeout(() => {
-                    if (iframe.style.height !== safeHeight + 'px') {
-                        iframe.style.height = safeHeight + 'px';
-                        console.log(`Safari fix: Height re-applied for ${source}`);
-                    }
-                }, 50);
-                
-            } catch (error) {
-                console.error(`Safari fix: Error setting height for ${source}:`, error);
-            }
-        },
+        // Safari sometimes reports 0 or very small heights initially
+        const validHeights = heights.filter(h => h > 10);
+        const maxHeight = Math.max(...validHeights);
         
-        // Enhanced message handler for Safari
-        handleMessage: function(event) {
-            // Safari security: be more specific about origin checking
-            try {
-                if (!event.data || typeof event.data !== 'object') {
-                    return;
-                }
-                
-                console.log("Safari fix: Message received:", event.data);
-                
-                const { type, source, height, buttonId, target } = event.data;
-                
-                if (!source) {
-                    console.warn("Safari fix: Message missing source identifier");
-                    return;
-                }
-                
-                const iframe = this.findIframeBySource(source);
-                
-                switch(type) {
-                    case 'setIframeHeight':
-                        if (iframe && height) {
-                            this.setIframeHeight(iframe, height, source);
-                        } else {
-                            console.warn(`Safari fix: No iframe found for ${source} or invalid height:`, height);
-                        }
-                        break;
-                        
-                    case 'iframeReady':
-                        console.log(`Safari fix: Iframe ready: ${source}`);
-                        if (iframe && iframe.contentWindow) {
-                            try {
-                                iframe.contentWindow.postMessage({
-                                    type: 'init',
-                                    timestamp: Date.now(),
-                                    browser: 'safari'
-                                }, '*');
-                                console.log(`Safari fix: Init message sent to ${source}`);
-                            } catch (e) {
-                                console.warn(`Safari fix: Could not send init to ${source}:`, e);
-                            }
-                        }
-                        break;
-                        
-                    case 'buttonActivated':
-                        console.log(`Safari fix: Button activated in ${source}: ${buttonId}`);
-                        // Trigger height recalculation after button interaction
-                        setTimeout(() => {
-                            if (iframe && iframe.contentWindow) {
-                                try {
-                                    iframe.contentWindow.postMessage({
-                                        type: 'requestHeight',
-                                        timestamp: Date.now()
-                                    }, '*');
-                                } catch (e) {
-                                    console.warn("Safari fix: Could not request height update:", e);
-                                }
-                            }
-                        }, 100);
-                        break;
-                        
-                    case 'interaction':
-                        console.log(`Safari fix: User interaction in ${source}:`, target);
-                        // Similar height recalculation for interactions
-                        setTimeout(() => {
-                            if (iframe && iframe.contentWindow) {
-                                try {
-                                    iframe.contentWindow.postMessage({
-                                        type: 'requestHeight',
-                                        timestamp: Date.now()
-                                    }, '*');
-                                } catch (e) {
-                                    console.warn("Safari fix: Could not request height after interaction:", e);
-                                }
-                            }
-                        }, 150);
-                        break;
-                        
-                    default:
-                        console.log(`Safari fix: Unknown message type: ${type}`);
-                }
-            } catch (error) {
-                console.error("Safari fix: Error handling message:", error);
+        // Additional check for visible content
+        const allElements = document.querySelectorAll('*');
+        let maxElementBottom = 0;
+        
+        for (let element of allElements) {
+            if (element.offsetParent !== null) { // Only visible elements
+                const rect = element.getBoundingClientRect();
+                const elementBottom = rect.bottom + window.pageYOffset;
+                maxElementBottom = Math.max(maxElementBottom, elementBottom);
             }
         }
-    };
-    
-    // Set up message listener with Safari-specific handling
-    window.addEventListener("message", function(event) {
-        safariIframeManager.handleMessage(event);
-    }, false);
-    
-    // Safari-specific iframe setup
-    function setupSafariIframes() {
-        const iframes = document.querySelectorAll('iframe');
         
-        iframes.forEach((iframe, index) => {
-            if (safariIframeManager.processedIframes.has(iframe)) {
-                return; // Already processed
-            }
-            
-            // Safari-specific iframe attributes
-            iframe.style.overflow = 'hidden';
-            iframe.style.border = 'none';
-            iframe.style.display = 'block';
-            iframe.style.width = '100%';
-            iframe.setAttribute('scrolling', 'no');
-            iframe.setAttribute('frameborder', '0');
-            
-            // Safari: Force iframe to load
-            if (!iframe.src && iframe.getAttribute('data-src')) {
-                iframe.src = iframe.getAttribute('data-src');
-            }
-            
-            safariIframeManager.processedIframes.add(iframe);
-            
-            console.log(`Safari fix: Processed iframe ${index + 1}:`, iframe.src);
-        });
+        // Use the larger of the calculated heights
+        return Math.max(maxHeight, maxElementBottom, 100); // Minimum 100px
     }
     
-    // Safari-specific window resize handler
-    function handleWindowResize() {
-        console.log("Safari fix: Window resized, notifying iframes");
-        const iframes = document.querySelectorAll('iframe');
+    // Enhanced sendHeight function for Safari
+    function safariSendHeight() {
+        if (window.isSendHeightBusy) {
+            console.log("Safari fix - sendHeight is busy, skipping call.");
+            return;
+        }
+        window.isSendHeightBusy = true;
         
-        iframes.forEach(iframe => {
-            if (iframe.contentWindow) {
-                try {
-                    iframe.contentWindow.postMessage({
-                        type: 'resize',
-                        width: window.innerWidth,
-                        height: window.innerHeight,
-                        browser: 'safari'
-                    }, '*');
-                } catch (e) {
-                    console.warn("Safari fix: Could not send resize message:", e);
-                }
-            }
-        });
+        // Force layout recalculation in Safari
+        document.body.style.display = 'none';
+        document.body.offsetHeight; // Trigger reflow
+        document.body.style.display = '';
+        
+        // Small delay to let Safari settle
+        setTimeout(() => {
+            const height = getSafariHeight();
+            
+            // Add buffer for Safari (it tends to cut off content)
+            const safariBuffer = 20;
+            const finalHeight = height + safariBuffer;
+            
+            window.parent.postMessage({
+                type: "setIframeHeight",
+                height: finalHeight,
+                source: window.source || "safari-iframe",
+                safari: true // Mark as Safari-specific
+            }, "*");
+            
+            console.log("Safari - Height sent to parent:", finalHeight);
+            
+            setTimeout(() => {
+                window.isSendHeightBusy = false;
+            }, 200); // Longer delay for Safari
+        }, 100);
     }
     
-    // Initialize Safari fixes
-    function initSafariFixes() {
-        console.log("Initializing Safari iframe fixes...");
-        
-        // Setup existing iframes
-        setupSafariIframes();
-        
-        // Watch for new iframes
-        const iframeObserver = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'childList') {
-                    mutation.addedNodes.forEach(function(node) {
-                        if (node.nodeType === 1) { // Element node
-                            if (node.tagName === 'IFRAME') {
-                                console.log("Safari fix: New iframe detected");
-                                setTimeout(setupSafariIframes, 100);
-                            } else if (node.querySelectorAll) {
-                                const newIframes = node.querySelectorAll('iframe');
-                                if (newIframes.length > 0) {
-                                    console.log(`Safari fix: ${newIframes.length} new iframes detected in added content`);
-                                    setTimeout(setupSafariIframes, 100);
-                                }
-                            }
-                        }
-                    });
-                }
-            });
-        });
-        
-        iframeObserver.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-        
-        // Window resize handling
-        let resizeTimeout;
-        window.addEventListener('resize', function() {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(handleWindowResize, 250);
-        });
-        
-        console.log("Safari iframe fixes initialized successfully");
-    }
-    
-    // Start when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSafariFixes);
+    // Override the global sendHeight function if it exists
+    if (typeof window.sendHeight === 'function') {
+        console.log("Overriding existing sendHeight with Safari version");
+        window.sendHeight = safariSendHeight;
     } else {
-        initSafariFixes();
+        window.sendHeight = safariSendHeight;
     }
     
-    // Backup initialization
-    setTimeout(initSafariFixes, 1000);
+    // Safari-specific event handlers
+    let safariResizeTimeout;
+    function safariResizeHandler() {
+        clearTimeout(safariResizeTimeout);
+        safariResizeTimeout = setTimeout(safariSendHeight, 250); // Longer delay for Safari
+    }
     
+    // Safari-specific mutation observer
+    let safariMutationTimeout;
+    function safariMutationHandler() {
+        clearTimeout(safariMutationTimeout);
+        safariMutationTimeout = setTimeout(safariSendHeight, 300); // Even longer delay for mutations
+    }
+    
+    // Enhanced event listeners for Safari
+    window.addEventListener('load', () => {
+        setTimeout(safariSendHeight, 500); // Initial delay for Safari
+    });
+    
+    window.addEventListener('resize', safariResizeHandler);
+    window.addEventListener('orientationchange', safariResizeHandler);
+    
+    // Safari-specific mutation observer
+    const safariObserver = new MutationObserver(safariMutationHandler);
+    safariObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style', 'hidden']
+    });
+    
+    // Monitor for description card visibility changes (specific to your app)
+    const cardObserver = new MutationObserver(function(mutations) {
+        let needsUpdate = false;
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && 
+                (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
+                const target = mutation.target;
+                if (target.classList.contains('description-card') || 
+                    target.classList.contains('show') ||
+                    target.classList.contains('fading-in') ||
+                    target.classList.contains('fading-out')) {
+                    needsUpdate = true;
+                }
+            }
+        });
+        
+        if (needsUpdate) {
+            console.log("Safari - Description card state changed, updating height");
+            setTimeout(safariSendHeight, 400); // Extra delay for animation completion
+        }
+    });
+    
+    // Start observing for description cards
+    cardObserver.observe(document.body, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ['class', 'style']
+    });
+    
+    // Safari periodic check (more frequent for better UX)
+    setInterval(safariSendHeight, 1500);
+    
+    // Safari-specific click handler with delayed height update
+    document.addEventListener('click', function(event) {
+        // Check if click was on a button or description area
+        const target = event.target;
+        const isButton = target.classList.contains('demo-button') || 
+                        target.closest('.demo-button') ||
+                        target.classList.contains('description-card') ||
+                        target.closest('.description-card');
+        
+        if (isButton) {
+            console.log("Safari - Button/card interaction detected");
+            // Multiple delayed updates to catch animation states
+            setTimeout(safariSendHeight, 100);  // Quick initial update
+            setTimeout(safariSendHeight, 350);  // After fade-out
+            setTimeout(safariSendHeight, 650);  // After fade-in
+            setTimeout(safariSendHeight, 1000); // Final safety check
+        }
+    });
+    
+    console.log("Safari iframe fixes applied successfully");
 })(); 
