@@ -2,48 +2,140 @@
 
 ## Recent Updates
 
--   **Internationalization**: All Russian comments within HTML files (`support.html`, `tags.html`) have been translated to English. The `FIGMA_INTEGRATION_GUIDE.md` has also been fully translated to English.
--   **Code Hygiene & Fixes**:
-    -   Fixed a JavaScript runtime issue related to an undefined `source` variable in `support.html` and `tags.html` (relevant for iframe communication).
-    -   Improved CSS formatting consistency in `tags.html`.
--   These changes enhance project maintainability and accessibility for an English-speaking audience.
+-   **React Components**: Converted all HTML files to React components for better maintainability and modern development workflow.
+-   **Component Architecture**: Created four main React components:
+    -   `design.js` - 39 action words with flying letter animations
+    -   `something.js` - 43 value words with synchronized transitions  
+    -   `tags.js` - 47 interactive service tags with descriptions
+    -   `support.js` - 30 support/values tags with call-to-action buttons
+-   **Code Organization**: Unified styling approach with component-scoped CSS and proper React hooks implementation.
 
-This project includes several HTML components designed for integration into other platforms, particularly Figma Sites, via iframes. Key features include animated text transitions and interactive button displays.
+This project includes several React components designed for modern web applications. Key features include animated text transitions with "flying letters" and interactive button displays with dynamic positioning.
 
-## HTML Components
+## React Components
 
--   **`something.html`**: Displays value-related words (e.g., "SOMETHING", "TRUST", "PURPOSE", "BEAUTY") with a "flying letter" animation effect for smooth transitions between words. It's designed for synchronized alternating animations when paired with `design.html`.
--   **`design.html`**: Displays action-related words (e.g., "DESIGN", "CREATE", "BUILD", "ITERATE") also using the "flying letter" animation. It's designed for synchronized alternating animations when paired with `something.html`.
--   **`support.html`**: Presents a collection of interactive buttons, each revealing a descriptive card on click. This component is focused on showcasing services or features with detailed pop-up information. It includes scripts for auto-height adjustment and parent communication when embedded in an iframe.
--   **`tags.html`**: Similar to `support.html`, this file displays a set of interactive buttons with descriptions appearing on click. It's also equipped with scripts for iframe integration, including auto-height and parent communication.
+-   **`something.js`**: Displays 43 value-related words (e.g., "SOMETHING", "TRUST", "PURPOSE", "BEAUTY") with a "flying letter" animation effect for smooth transitions between words. It's designed for synchronized alternating animations when paired with `design.js`.
+-   **`design.js`**: Displays 39 action-related words (e.g., "DESIGN", "CREATE", "BUILD", "ITERATE") also using the "flying letter" animation. It's designed for synchronized alternating animations when paired with `something.js`.
+-   **`support.js`**: Presents a collection of 30 interactive buttons, each revealing a descriptive card on click. This component is focused on showcasing support values and features with detailed pop-up information.
+-   **`tags.js`**: Displays 47 interactive service tags with descriptions appearing on click. Features comprehensive UX/UI services, research methods, design systems, and specialized solutions.
 
-## Features Common to All Components (when in iframes)
+## Features Common to All Components
 
--   **Figma Sites Integration**: All HTML files (`something.html`, `design.html`, `support.html`, `tags.html`) include scripts for integration with Figma Sites. This allows them to:
-    -   Automatically adjust their height within the iframe.
-    -   Communicate with the parent Figma window (e.g., send interaction events, iframe readiness).
-    -   Respond to commands from the parent window (e.g., resize, theme changes).
-    *   Refer to `FIGMA_INTEGRATION_GUIDE.md` for detailed setup instructions.
+-   **React Hooks**: All components use modern React hooks (useState, useEffect, useRef) for state management and lifecycle handling.
+-   **Component-Scoped Styling**: Each component includes its own styled component with high specificity selectors to prevent style conflicts.
+-   **Responsive Design**: All components adapt to different screen sizes with mobile-specific optimizations.
+-   **Performance Optimization**: Uses requestAnimationFrame for smooth animations and proper cleanup in useEffect hooks.
 
-## `something.html` & `design.html` - Animated Word Transition System
+## `something.js` & `design.js` - Animated Word Transition System
 
-These two files feature synchronized animated text transitions.
+These two components feature synchronized animated text transitions with a sophisticated "flying letter" mechanic that creates visual continuity between word changes.
 
-### Animation System (`something.html` & `design.html`)
--   **Letter Bridge Effect**: When transitioning between words, if a common letter exists between the current and next word, this letter visually "flies" from its position in the old word to its position in the new word.
--   **Smooth Transitions**: Fade-in/fade-out effects for non-bridge letters.
--   **Smart Letter Selection**: Avoids reusing the same letter as a bridge in consecutive transitions.
--   **Color Variation**: Each word has its own color, and consecutive words avoid color repetition.
--   **Fallback Handling**: If no common letter is found, performs a standard fade transition.
+### Animation System - Core Concept
 
-### Synchronization (`something.html` & `design.html`)
-The two files are designed to work together in separate iframes with alternating animations:
+The animation system creates a visual bridge between words using shared letters. When transitioning from one word to another, a common letter literally "flies" from the old word to the new word, maintaining its original color and creating a smooth visual connection.
 
-1.  **`something.html`** starts first (1500ms delay)
-2.  **`design.html`** starts second (3000ms delay)
+### How the "Flying Letter" Mechanic Works
+
+#### **Step 1: Letter Identification**
+```
+Current word: DESIGN (gray color)
+Next word:    CREATE (green color)
+Common letter: "E" (exists in both words)
+```
+
+#### **Step 2: Letter Extraction & Flight**
+- The letter "E" is extracted from "DESIGN" 
+- It maintains its **gray color** from the original word
+- The letter physically animates from its position in "DESIGN" to its position in "CREATE"
+- Other letters of "DESIGN" fade out during this transition
+
+#### **Step 3: Letter Integration**
+- The flying "E" lands in "CREATE" and replaces the placeholder
+- **Critical:** The "E" keeps its **gray color** even though it's now part of "CREATE"
+- The rest of "CREATE" appears in the new word's **green color**
+- Result: "CR**E**ATE" where the E is gray and the rest is green
+
+#### **Step 4: Letter Lifecycle**
+- The gray "E" lives for exactly **one transition cycle**
+- When "CREATE" transitions to the next word, the gray "E" fades out with the rest of "CREATE"
+- A **different letter** from "CREATE" (in green color) becomes the new flying letter
+
+#### **Visual Example of Complete Cycle:**
+```
+DESIGN (gray) 
+    ↓ "E" flies gray →
+CR[E]ATE (green + gray E)
+    ↓ "R" flies green →
+[R]ESEARCH (purple + green R)  
+    ↓ "E" flies purple →
+CR[E]ATE (blue + purple E)
+```
+
+### Key Animation Principles
+
+#### **Color Inheritance Rule**
+- Each flying letter **always retains** the color of its origin word
+- This creates visual memory and continuity across transitions
+- A letter from a blue word will remain blue even when integrated into a red word
+
+#### **One-Cycle Lifespan**
+- Flying letters live for exactly **one transition cycle**
+- They participate in the next transition as part of their new word
+- Then they fade away, making room for a new flying letter
+
+#### **Letter Rotation System**
+- Different letters become "flying" in each transition
+- Prevents monotony and creates varied visual patterns
+- Ensures every part of words gets to participate in the animation
+
+### Advanced Animation Features
+
+-   **Smart Letter Selection**: Algorithm avoids reusing the same letter consecutively to create variety
+-   **Collision Avoidance**: If the same letter was used in the previous transition, the system finds a different common letter
+-   **Fallback Graceful**: If no common letter exists, performs a standard fade transition
+-   **Multi-letter Words**: Handles complex words like "UNDERSTANDING" and "COMMUNICATE" seamlessly
+-   **Position Calculation**: Precisely calculates letter positions using font metrics for pixel-perfect animations
+-   **Color Persistence**: Flying letters maintain their origin color throughout their lifecycle
+
+### Practical Example - Complete Sequence
+
+Here's what actually happens during a real transition sequence:
+
+```
+Transition 1: DESIGN → CREATE
+┌─────────────────────────────────────────────────┐
+│ Before: D E S I G N  (all gray)                │
+│ After:  C R E A T E  (green + gray E)          │
+│ Flying: E (gray) from position 1 to position 2  │
+└─────────────────────────────────────────────────┘
+
+Transition 2: CREATE → RESEARCH  
+┌─────────────────────────────────────────────────┐
+│ Before: C R E A T E  (green + gray E)          │
+│ After:  R E S E A R C H  (purple + green R)    │
+│ Flying: R (green) from position 1 to position 0 │
+│ Note: The gray E fades away with CREATE         │
+└─────────────────────────────────────────────────┘
+
+Transition 3: RESEARCH → CREATE
+┌─────────────────────────────────────────────────┐
+│ Before: R E S E A R C H  (purple + green R)    │
+│ After:  C R E A T E  (blue + purple E)         │
+│ Flying: E (purple) from position 1 to position 2│
+│ Note: The green R fades away with RESEARCH      │
+└─────────────────────────────────────────────────┘
+```
+
+This creates an ongoing visual narrative where colors flow between words through shared letters.
+
+### Synchronization (`something.js` & `design.js`)
+The two components are designed to work together with alternating animations:
+
+1.  **`something.js`** starts first (1500ms delay)
+2.  **`design.js`** starts second (3000ms delay)
 3.  Both continue alternating with 3000ms intervals between transitions
 
-### Technical Implementation (`something.html` & `design.html`)
+### Technical Implementation (`something.js` & `design.js`)
 
 #### Word Selection Algorithm
 ```javascript
@@ -55,12 +147,12 @@ The two files are designed to work together in separate iframes with alternating
 ```
 
 #### Animation Stages
-1.  **Preparation**: Calculate dimensions and identify common letters
-2.  **Bridge Creation**: Extract common letter and position it absolutely
-3.  **Fade Out**: Hide old word parts (250ms)
-4.  **Letter Movement**: Animate bridge letter to new position (450ms)
-5.  **Fade In**: Show new word parts (270ms)
-6.  **Integration**: Merge bridge letter back into word flow
+1.  **Preparation**: Calculate dimensions and identify common letters between current and next word
+2.  **Bridge Creation**: Extract common letter from current word while preserving its original color
+3.  **Fade Out**: Hide remaining parts of old word (250ms) while keeping bridge letter visible
+4.  **Letter Movement**: Animate bridge letter to its new position in the next word (450ms)
+5.  **Fade In**: Show new word parts around the landing position (270ms)
+6.  **Integration**: Merge bridge letter into new word while maintaining its original color for one cycle
 
 #### Timing Configuration
 -   **Fade transitions**: 250ms out, 270ms in
@@ -68,13 +160,13 @@ The two files are designed to work together in separate iframes with alternating
 -   **Synchronization interval**: 3000ms between word changes
 -   **Initial delays**: 1500ms (something.html), 3000ms (design.html)
 
-### Algorithm Analysis Results (`something.html` & `design.html`)
+### Algorithm Analysis Results (`something.js` & `design.js`)
 
 The word transition algorithm has been thoroughly analyzed with the following results:
 
 #### Coverage Statistics
--   **`something.html`**: 95.1% of transitions use common letters (1,272 out of 1,338 possible transitions)
--   **`design.html`**: 92.9% of transitions use common letters (184 out of 198 possible transitions)
+-   **`something.js`**: 95.1% of transitions use common letters (high coverage across 43 words)
+-   **`design.js`**: 92.9% of transitions use common letters (high coverage across 39 words)
 
 #### Reliability
 -   ✅ **No critical issues found** - all words can be reached
@@ -83,53 +175,66 @@ The word transition algorithm has been thoroughly analyzed with the following re
 -   ✅ **Even coverage** - all words participate equally in the rotation
 
 #### Word Distribution
--   **`something.html`**: 39 words across 9 colors
--   **`design.html`**: 15 words across 9 colors
+-   **`something.js`**: 43 words across 9 colors (values and concepts)
+-   **`design.js`**: 39 words across 9 colors (actions and processes)
 -   Each color group has multiple words to ensure variety
 
-## `support.html` & `tags.html` - Interactive Button System
+## `support.js` & `tags.js` - Interactive Button System
 
 These files present collections of buttons. When a button is clicked, a card with a description appears.
 
-### Features (`support.html` & `tags.html`)
+### Features (`support.js` & `tags.js`)
 -   **Interactive Buttons**: Clickable buttons that reveal more information.
--   **Description Cards**: Pop-up cards display detailed text.
+-   **Description Cards**: Pop-up cards display detailed text with smooth animations.
 -   **Dynamic Positioning**: Description cards adjust their position to stay within view.
 -   **Colored CTA Buttons**: Call-to-action buttons within cards inherit colors from the main button.
--   **Responsive Design**: Adapts to different screen sizes.
+-   **Responsive Design**: Adapts to different screen sizes with mobile optimizations.
+-   **Click Outside Handling**: Cards close when clicking outside them.
 
 ## Usage
 
-### Embedding in iframes
-All files are designed to be embedded using iframes.
+### React Component Integration
+All components can be imported and used in React applications:
 
-```html
-<!-- Example for animated words -->
-<iframe src="something.html" width="100%" height="200px" style="border: none;"></iframe>
-<iframe src="design.html" width="100%" height="200px" style="border: none;"></iframe>
+```jsx
+import Design from './design.js';
+import Something from './something.js';
+import Tags from './tags.js';
+import Support from './support.js';
 
-<!-- Example for interactive buttons -->
-<iframe src="support.html" width="100%" style="border: none; min-height: 500px;"></iframe>
-<iframe src="tags.html" width="100%" style="border: none; min-height: 500px;"></iframe>
+function App() {
+  return (
+    <div>
+      {/* Animated words */}
+      <Something />
+      <Design />
+      
+      {/* Interactive buttons */}
+      <Tags />
+      <Support />
+    </div>
+  );
+}
 ```
-*Refer to `FIGMA_INTEGRATION_GUIDE.md` for advanced iframe communication setup for Figma Sites.*
 
-### Single File Usage
-Each file can also be used independently if iframe communication features are not required.
+### Component Features
+- Google Fonts (Anton, Lato, Montserrat) are loaded automatically
+- Self-contained styling prevents conflicts
+- Proper cleanup in useEffect hooks
 
 ## Customization
 
-### Word Lists (`something.html` & `design.html`)
-Edit the arrays in each file:
+### Word Lists (`something.js` & `design.js`)
+Edit the arrays in each component:
 ```javascript
-// In something.html
+// In something.js
 const valueWords = [
   { text: "SOMETHING", color: "#E0E3D8" },
   { text: "TRUST", color: "#3560E2" },
   // ... add more words
 ];
 
-// In design.html
+// In design.js
 const actionWords = [
   { text: "DESIGN", color: "#E0E3D8" },
   { text: "CREATE", color: "#67CF3A" },
@@ -137,52 +242,62 @@ const actionWords = [
 ];
 ```
 
-### Button Content (`support.html` & `tags.html`)
-Modify the HTML structure directly within these files to change button text, descriptions, and call-to-action button behavior.
-
-### Timing Adjustments (`something.html` & `design.html`)
-The initial delay and subsequent transition intervals can be adjusted towards the end of the `<script>` block in each file:
-
-*In `something.html`:*
+### Button Content (`support.js` & `tags.js`)
+Modify the data arrays in each component:
 ```javascript
-// Initial delay before first word change in this iframe.
-// "SOMETHING" should change first.
-const initialInterval = 1500; 
-setTimeout(changeWord, initialInterval);
-// ... later in changeWord function:
-// const nextInterval = 3000; 
-// setTimeout(changeWord, nextInterval);
+// In tags.js
+const tagsData = [
+  { 
+    id: 'ux-design', 
+    text: 'UX Design', 
+    description: 'Detailed description...', 
+    cta: 'Call to action text', 
+    group: 'green' 
+  },
+  // ... add more tags
+];
 ```
 
-*In `design.html`:*
+### Timing Adjustments (`something.js` & `design.js`)
+The initial delay and subsequent transition intervals can be adjusted in the useEffect hook:
+
+*In `something.js`:*
 ```javascript
-// Initial delay before first word change in this iframe.
-// "DESIGN" should change second, after "SOMETHING" and a pause.
-const initialInterval = 3000;
-setTimeout(changeWord, initialInterval);
-// ... later in changeWord function:
-// const nextInterval = 3000;
-// setTimeout(changeWord, nextInterval);
+useEffect(() => {
+  // Initial delay before first word change
+  const initialInterval = 1500; 
+  const timer = setTimeout(changeWord, initialInterval);
+  // In changeWord function: const nextInterval = 3000;
+}, []);
+```
+
+*In `design.js`:*
+```javascript
+useEffect(() => {
+  // Initial delay - should start after something.js
+  const initialInterval = 3000;
+  const timer = setTimeout(changeWord, initialInterval);
+}, []);
 ```
 
 ### Styling
--   **`something.html` & `design.html`**: Modify CSS variables like `font-family`, `font-size` in `.hero-word-container`.
--   **`support.html` & `tags.html`**: Modify the `<style>` section within each file for visual adjustments.
+-   **`something.js` & `design.js`**: Modify CSS in the styled components, adjust font sizes and colors.
+-   **`support.js` & `tags.js`**: Update the component styles, change color maps and responsive breakpoints.
 
 ## Browser Compatibility
 
--   Modern browsers with CSS animations and JavaScript support.
+-   Modern browsers with CSS animations and React support.
 -   Requires JavaScript enabled.
--   `something.html` & `design.html` use Google Fonts (Anton family).
--   `support.html` & `tags.html` use Google Fonts (Lato, Montserrat).
--   All components are responsive.
+-   `something.js` & `design.js` use Google Fonts (Anton family).
+-   `support.js` & `tags.js` use Google Fonts (Lato, Montserrat).
+-   All components are responsive and mobile-friendly.
 
 ## Performance Notes
 
--   **`something.html` & `design.html`**: Uses `requestAnimationFrame` for smooth animations, dynamically calculates letter positions, and cleans up temporary DOM elements.
--   **`support.html` & `tags.html`**: DOM manipulation for showing/hiding description cards is optimized. Auto-height scripts use `MutationObserver` and debouncing for efficiency.
+-   **`something.js` & `design.js`**: Uses `requestAnimationFrame` for smooth animations, dynamically calculates letter positions, and cleans up temporary DOM elements. React hooks ensure proper lifecycle management.
+-   **`support.js` & `tags.js`**: DOM manipulation for showing/hiding description cards is optimized. Click outside handling and resize events use proper cleanup patterns.
 
-## Algorithm Robustness (`something.html` & `design.html`)
+## Algorithm Robustness (`something.js` & `design.js`)
 
 The transition algorithm is designed for maximum reliability:
 
