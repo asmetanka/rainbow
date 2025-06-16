@@ -1,0 +1,875 @@
+<link href="https://fonts.googleapis.com/css2?family=Anton:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/three@0.151.3/build/three.min.js"></script>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  height: 100%;
+  background: #010214;
+}
+
+#wrapper {
+  padding-top: 0; /* provides guaranteed top margin */
+  box-sizing: border-box;
+  height: 100vh; /* stretch the wrapper */
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.hero-word-container {
+  position: relative;
+  display: block;
+  min-height: 190px;
+  font-family: 'Anton', sans-serif;
+  font-size: 200px;
+  line-height: 176px;
+  font-weight: 500;
+  letter-spacing: -4px;
+  white-space: nowrap;
+  overflow: visible;
+  width: 100%;
+  max-width: 100vw;
+  font-size: 0;
+  text-align: left;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.word-part {
+  display: inline-block;
+  font-size: 200px;
+  line-height: 176px;
+  margin: 0;
+  padding: 0;
+  vertical-align: baseline;
+}
+
+.word-part.fading-out {
+  animation: fadeOut 0.25s ease-out forwards;
+}
+
+.word-part.fading-in {
+  animation: fadeIn 0.25s ease-in forwards;
+  opacity: 0;
+}
+
+.common-letter {
+  position: relative;
+  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 10;
+}
+
+.common-letter.moving {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: all 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Glass effect styles for animated letter - inspired by liquid glass */
+.common-letter--glass {
+  position: relative;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: -8px -12px;
+  overflow: hidden;
+}
+
+/* Three.js canvas for glass effect */
+.common-letter--glass canvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: -1;
+}
+
+/* Backdrop blur layer */
+.common-letter--glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: hsla(0,0%,100%,0.05);
+  backdrop-filter: blur(12px) saturate(200%);
+  -webkit-backdrop-filter: blur(12px) saturate(200%);
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Highlight gradient border */
+.common-letter--glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  mask-image: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 50%);
+  -webkit-mask-image: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Text should be above all effects */
+.common-letter--glass {
+  z-index: 3;
+  position: relative;
+}
+
+/* Letter glass wrapper and layers */
+.letter-glass-wrapper {
+  display: inline-block;
+  position: absolute;
+  overflow: visible;
+  width: auto;
+  height: auto;
+  vertical-align: baseline;
+}
+.letter-glass-wrapper .letter-glass__blur {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(12px) saturate(200%);
+  -webkit-backdrop-filter: blur(12px) saturate(200%);
+  z-index: 1;
+}
+.letter-glass-wrapper .letter-glass__sphere canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+.letter-glass-wrapper .letter-glass__highlight,
+.letter-glass-wrapper .letter-glass__shadow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  border: 1px solid transparent;
+  mask-image: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 50%);
+  -webkit-mask-image: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 50%);
+}
+.letter-glass-wrapper .letter-glass__highlight {
+  border-color: rgba(255,255,255,0.8);
+}
+.letter-glass-wrapper .letter-glass__shadow {
+  border-color: rgba(0,0,0,0.3);
+  mask-image: linear-gradient(315deg, rgba(0,0,0,0.3) 0%, transparent 50%);
+  -webkit-mask-image: linear-gradient(315deg, rgba(0,0,0,0.3) 0%, transparent 50%);
+}
+.letter-glass-wrapper svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+}
+</style>
+
+<div id="wrapper">
+  <div class="hero-word-container">
+    <span id="hero-word" class="word-part" style="color:#E0E3D8;">DESIGN</span>
+  </div>
+</div>
+<script>
+const actionWords = [
+  { text: "DESIGN", color: "#E0E3D8" },
+  { text: "CREATE", color: "#67CF3A" },
+  { text: "BUILD", color: "#FF6237" },
+  { text: "ITERATE", color: "#845DD9" },
+  { text: "CRAFT", color: "#F7D80E" },
+  { text: "SHAPE", color: "#1FC37E" },
+  { text: "CONNECT", color: "#FFB221" },
+  { text: "INSPIRE", color: "#F54242" },
+  { text: "TRANSFORM", color: "#3560E2" },
+  { text: "ELEVATE", color: "#67CF3A" },
+  { text: "LAUNCH", color: "#FFB221" },
+  { text: "REFINE", color: "#845DD9" },
+  { text: "IMAGINE", color: "#F7D80E" },
+  { text: "ARCHITECT", color: "#FF6237" },
+  { text: "ENHANCE", color: "#1FC37E" },
+  { text: "DELIVER", color: "#3560E2" },
+  { text: "GUIDE", color: "#FFB221" },
+  { text: "DO", color: "#1FC37E" },
+  { text: "LEAD", color: "#3560E2" },
+  { text: "PLAN", color: "#67CF3A" },
+  { text: "CARE", color: "#1FC37E" },
+  { text: "SUPPORT", color: "#F54242" },
+  { text: "ALIGN", color: "#845DD9" },
+  { text: "TEST", color: "#F7D80E" },
+  { text: "OPTIMIZE", color: "#FF6237" },
+  { text: "PARTNER", color: "#67CF3A" },
+  { text: "ENGAGE", color: "#FFB221" },
+  { text: "DEFINE", color: "#845DD9" },
+  { text: "EXPLORE", color: "#F54242" },
+  { text: "COMMUNICATE", color: "#3560E2" },
+  { text: "EMPOWER", color: "#67CF3A" },
+  { text: "SOLVE", color: "#FF6237" },
+  { text: "BALANCE", color: "#1FC37E" },
+  { text: "GROW", color: "#67CF3A" },
+  { text: "FRAME", color: "#F7D80E" },
+  { text: "RESEARCH", color: "#845DD9" },
+  { text: "NAVIGATE", color: "#3560E2" },
+  { text: "ORGANIZE", color: "#FFB221" },
+  { text: "COORDINATE", color: "#3560E2" }
+];
+
+let currentWordIndex = 0;
+const container = document.querySelector('.hero-word-container');
+// Stores information about the last "landed" common letter { char: 'S', indexInCurrentWord: 3 }
+let lastLandedBridgeInfo = null;
+
+/**
+ * Generates a random number between min and max (inclusive).
+ * @param {number} min - Minimum value.
+ * @param {number} max - Maximum value.
+ * @returns {number} Random integer.
+ */
+function getRandomInterval(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Finds the first common letter between two words, excluding all occurrences of a specific letter if specified.
+ * @param {string} word1 - First word.
+ * @param {string} word2 - Second word.
+ * @param {null|{char: string, indexInCurrentWord: number}} excludedInfo - Information about the excluded letter.
+ * @returns {null|{letter: string, positionInWord1: number, positionInWord2: number}} Object with common letter and its positions or null.
+ */
+function findCommonLetters(word1, word2, excludedInfo = null) {
+  const letters1 = word1.toLowerCase().split('');
+  const letters2 = word2.toLowerCase().split('');
+  
+  for (let i = 0; i < letters1.length; i++) {
+    const charInWord1Lowercase = letters1[i];
+    const originalCharInWord1 = word1.charAt(i);
+
+    // Check for exclusion - exclude ALL occurrences of the previously used letter
+    if (excludedInfo && charInWord1Lowercase === excludedInfo.char.toLowerCase()) {
+      continue; // Skip ALL occurrences of this character
+    }
+
+    // Exclude spaces and check if the letter exists in the second word
+    if (charInWord1Lowercase !== ' ' && charInWord1Lowercase.trim() !== '' && letters2.includes(charInWord1Lowercase)) {
+      const positionInWord2 = letters2.indexOf(charInWord1Lowercase);
+      if (positionInWord2 !== -1) {
+        return {
+          letter: originalCharInWord1.toUpperCase(), // Use original casing, then uppercase for consistency
+          positionInWord1: i,
+          positionInWord2: positionInWord2
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Creates a Three.js glass effect for letter background
+ * @param {HTMLElement} element - The letter element
+ * @param {string} color - Letter color
+ */
+function createGlassEffect(element, color) {
+  const rect = element.getBoundingClientRect();
+  const width = rect.width || 100;
+  const height = rect.height || 100;
+  
+  // Three.js setup
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, width/height, 0.1, 100);
+  camera.position.z = 3;
+  
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(width, height);
+  renderer.setClearColor(0x000000, 0);
+  
+  // Background plane to catch light
+  const planeGeom = new THREE.PlaneGeometry(2, 2);
+  const planeMat = new THREE.MeshBasicMaterial({ 
+    color: 0x666666,
+    transparent: true,
+    opacity: 0.3
+  });
+  const backgroundPlane = new THREE.Mesh(planeGeom, planeMat);
+  backgroundPlane.position.z = -1;
+  scene.add(backgroundPlane);
+  
+  // Light
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+  dirLight.position.set(0, 0, 5);
+  scene.add(dirLight);
+  
+  // Glass plane with liquid glass material
+  const glassGeom = new THREE.PlaneGeometry(1.5, 1);
+  const glassMat = new THREE.MeshPhysicalMaterial({
+    transmission: 0.9,
+    thickness: 0.2,
+    ior: 1.5,
+    roughness: 0,
+    metalness: 0,
+    clearcoat: 1,
+    clearcoatRoughness: 0,
+    transparent: true,
+    opacity: 0.8
+  });
+  
+  const glassPlane = new THREE.Mesh(glassGeom, glassMat);
+  scene.add(glassPlane);
+  
+  // Insert canvas into element
+  renderer.domElement.style.position = 'absolute';
+  renderer.domElement.style.top = '0';
+  renderer.domElement.style.left = '0';
+  renderer.domElement.style.width = '100%';
+  renderer.domElement.style.height = '100%';
+  renderer.domElement.style.zIndex = '-1';
+  element.appendChild(renderer.domElement);
+  
+  // Animation loop
+  function animate() {
+    glassPlane.rotation.z += 0.001;
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  animate();
+  
+  return renderer.domElement;
+}
+
+/**
+ * Initializes liquid glass effect on a wrapper element.
+ * @param {HTMLElement} wrapperEl - The wrapper element containing layers.
+ * @param {string} color - Base color of the letter.
+ * @returns {{stop: function}} Object with stop method.
+ */
+function initLetterGlassEffect(wrapperEl, color) {
+  const sphereLayer = wrapperEl.querySelector('.letter-glass__sphere');
+  const highlight = wrapperEl.querySelector('.letter-glass__highlight');
+  const shadow = wrapperEl.querySelector('.letter-glass__shadow');
+  
+  const scene = new THREE.Scene();
+  const rect = wrapperEl.getBoundingClientRect();
+  const camera = new THREE.PerspectiveCamera(45, rect.width/rect.height, 0.1, 100);
+  camera.position.z = 3;
+  
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(rect.width, rect.height);
+  renderer.setClearColor(0x000000, 0);
+  sphereLayer.appendChild(renderer.domElement);
+  
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+  dirLight.position.set(0, 0, 5);
+  scene.add(dirLight);
+  
+  const planeGeom = new THREE.PlaneGeometry(2, 2);
+  const planeMat = new THREE.MeshBasicMaterial({ color: 0x666666, transparent: true, opacity: 0.3 });
+  const backgroundPlane = new THREE.Mesh(planeGeom, planeMat);
+  backgroundPlane.position.z = -1;
+  scene.add(backgroundPlane);
+  
+  const glassGeom = new THREE.PlaneGeometry(1.5, 1);
+  const glassMat = new THREE.MeshPhysicalMaterial({
+    transmission: 0.9,
+    thickness: 0.2,
+    ior: 1.5,
+    roughness: 0,
+    metalness: 0,
+    clearcoat: 1,
+    clearcoatRoughness: 0,
+    transparent: true,
+    opacity: 0.8
+  });
+  const glassPlane = new THREE.Mesh(glassGeom, glassMat);
+  scene.add(glassPlane);
+
+  function animate() {
+    glassPlane.rotation.z += 0.002;
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  function onMouseMove(e) {
+    const rect = wrapperEl.getBoundingClientRect();
+    const dx = (e.clientX - (rect.left + rect.width/2)) / (rect.width/2);
+    const dy = (e.clientY - (rect.top + rect.height/2)) / (rect.height/2);
+    dirLight.position.set(dx, dy, 5);
+    const angle = Math.atan2(dy, dx) * (180/Math.PI);
+    highlight.style.transform = `rotate(${angle-45}deg)`;
+    shadow.style.transform = `rotate(${angle+135}deg)`;
+  }
+  document.addEventListener('mousemove', onMouseMove);
+
+  return {
+    stop() {
+      document.removeEventListener('mousemove', onMouseMove);
+      renderer.dispose();
+    }
+  };
+}
+
+/**
+ * Calculates the position (left offset in pixels) of a letter in a word.
+ * Used to determine where the common letter should "land".
+ * @param {string} word - The word.
+ * @param {number} letterIndex - Index of the letter in the word.
+ * @returns {number} Position of the letter in pixels.
+ */
+function calculateLetterPosition(word, letterIndex) {
+  const tempSpan = document.createElement('span');
+  tempSpan.style.fontFamily = 'Anton, sans-serif';
+  tempSpan.style.fontSize = '200px';
+  tempSpan.style.letterSpacing = '-4px';
+  tempSpan.style.whiteSpace = 'nowrap';
+
+  tempSpan.style.visibility = 'hidden';
+  tempSpan.style.position = 'absolute';
+  tempSpan.textContent = word.substring(0, letterIndex);
+  document.body.appendChild(tempSpan);
+  
+  const width = tempSpan.getBoundingClientRect().width; 
+  document.body.removeChild(tempSpan);
+  
+  return width;
+}
+
+/**
+ * Selects a random next word for animation.
+ * Priority is given to words with a common letter (not the one that was common in the previous transition, if any).
+ * Also avoids repeating the word color.
+ * Fallbacks are provided if no suitable word with a common letter is found.
+ * @param {string} currentWordText - Text of the current word.
+ * @param {string} excludeColor - Color of the current word to avoid for the next one.
+ * @param {null|{char: string, indexInCurrentWord: number}} excludedLetterInfoFromCurrentWord - Information about the letter that was a bridge in the *previous* transition (to avoid using it again as a bridge from the current word).
+ * @returns {{word: {text: string, color: string}, commonInfo: null|{letter: string, positionInWord1: number, positionInWord2: number}}} Object with the next word and information about the common letter (if any).
+ */
+function getRandomWordWithCommonLetter(currentWordText, excludeColor, excludedLetterInfoFromCurrentWord) {
+  const availableWordsAndInfos = [];
+  actionWords.forEach(wordObj => {
+    if (wordObj.color !== excludeColor && wordObj.text !== currentWordText) {
+      // Pass the excludedLetterInfoFromCurrentWord to findCommonLetters
+      const commonInfo = findCommonLetters(currentWordText, wordObj.text, excludedLetterInfoFromCurrentWord);
+      if (commonInfo) {
+        availableWordsAndInfos.push({ word: wordObj, commonInfo: commonInfo });
+      }
+    }
+  });
+
+  if (availableWordsAndInfos.length > 0) {
+    return availableWordsAndInfos[Math.floor(Math.random() * availableWordsAndInfos.length)];
+  }
+  
+  // Fallback 1: if no words with suitable common letters, 
+  // try any other word with a different color.
+  const anyOtherColorWords = actionWords.filter(wordObj => 
+    wordObj.color !== excludeColor && wordObj.text !== currentWordText
+  );
+  if (anyOtherColorWords.length > 0) {
+    return { word: anyOtherColorWords[Math.floor(Math.random() * anyOtherColorWords.length)], commonInfo: null };
+  }
+  
+  // Fallback 2: if still no options, try any other word at all (except current).
+  const anyOtherWords = actionWords.filter(wordObj => wordObj.text !== currentWordText);
+  if (anyOtherWords.length > 0) {
+      return { word: anyOtherWords[Math.floor(Math.random() * anyOtherWords.length)], commonInfo: null };
+  }
+  
+  // Fallback 3: As a last resort, if only one word or current is the only option.
+  const currentWordData = actionWords.find(w => w.text === currentWordText);
+  return { word: currentWordData || actionWords[0], commonInfo: null }; 
+}
+
+/**
+ * Animates the transition between the current and new word.
+ * If a common letter is found, it "flies" from the old word to the new one.
+ * Otherwise, the old word disappears and the new one appears.
+ * @param {{text: string, color: string}} currentWordObj - Object of the current word.
+ * @param {{text: string, color: string}} newWordObj - Object of the new word.
+ * @param {null|{letter: string, positionInWord1: number, positionInWord2: number}} commonLetterInfoToUse - Information about the common letter to use in the transition.
+ * @param {string} currentWordBaseColor - Base color of the current word.
+ */
+async function animateWordTransition(currentWordObj, newWordObj, commonLetterInfoToUse, currentWordBaseColor) {
+  const commonLetterInfo = commonLetterInfoToUse;
+
+  const currentContainerWidth = container.offsetWidth;
+
+  let requiredWidthForNewWord = 0;
+  const tempSpanForWidthCalc = document.createElement('span');
+  tempSpanForWidthCalc.style.fontFamily = 'Anton, sans-serif';
+  tempSpanForWidthCalc.style.fontSize = '200px';
+  tempSpanForWidthCalc.style.letterSpacing = '-4px';
+  tempSpanForWidthCalc.style.whiteSpace = 'nowrap';
+  tempSpanForWidthCalc.style.visibility = 'hidden';
+  tempSpanForWidthCalc.style.position = 'absolute'; 
+  tempSpanForWidthCalc.textContent = newWordObj.text;
+  document.body.appendChild(tempSpanForWidthCalc);
+  requiredWidthForNewWord = tempSpanForWidthCalc.getBoundingClientRect().width;
+  document.body.removeChild(tempSpanForWidthCalc);
+
+  const safetyBuffer = 40; // Significantly increase buffer to 40px
+  container.style.width = Math.max(currentContainerWidth, requiredWidthForNewWord) + safetyBuffer + 'px';
+  
+  const containerRect = container.getBoundingClientRect();
+
+  let bridgeLetterElement = null;
+  let initialXOfBridgeLetterInContainer = 0;
+  let targetXOfBridgeLetterInContainer = 0;
+
+  if (commonLetterInfo) {
+    const { letter: commonLetterChar, positionInWord1, positionInWord2 } = commonLetterInfo;
+    
+    let commonLetterHostingSpanInfo = null;
+    const currentChildSpans = Array.from(container.childNodes).filter(node => node.nodeType === 1 && node.classList.contains('word-part'));
+
+    for (let i = 0; i < currentChildSpans.length; i++) {
+      const span = currentChildSpans[i];
+      const spanText = span.textContent;
+      const spanLen = spanText.length;
+      
+      let localCharScanIndex = 0; // Local index to determine which span positionInWord1 relates to
+      for (let j = 0; j < i; j++) {
+        localCharScanIndex += currentChildSpans[j].textContent.length;
+      }
+
+      if (localCharScanIndex <= positionInWord1 && positionInWord1 < localCharScanIndex + spanLen) {
+        commonLetterHostingSpanInfo = {
+          spanToSplit: span,
+          originalColor: span.style.color || currentWordBaseColor,
+          commonActualCharPosInSpan: positionInWord1 - localCharScanIndex,
+          commonActualCharValue: currentWordObj.text.charAt(positionInWord1),
+          spanText: spanText
+        };
+        break;
+      }
+    }
+
+    if (!commonLetterHostingSpanInfo) {
+        console.warn("Common letter hosting span not found in DOM. Fallback.");
+        // Fallback (complete fade out/in)
+        const allCurrentPartsFallback = container.querySelectorAll('.word-part');
+        allCurrentPartsFallback.forEach(part => part.classList.add('fading-out'));
+        setTimeout(() => {
+            container.innerHTML = `<span class="word-part fading-in" style="color: ${newWordObj.color};">${newWordObj.text}</span>`;
+            setTimeout(() => {
+                const newWordEl = container.querySelector('.word-part.fading-in');
+                if (newWordEl) newWordEl.classList.remove('fading-in');
+                container.style.width = 'auto';
+            }, 270);
+        }, 250);
+        return;
+    }
+
+    const { spanToSplit, originalColor, commonActualCharPosInSpan, commonActualCharValue, spanText } = commonLetterHostingSpanInfo;
+    
+    const parent = spanToSplit.parentNode;
+    const nextSibling = spanToSplit.nextSibling;
+    parent.removeChild(spanToSplit);
+
+    const textBeforeInSpan = spanText.substring(0, commonActualCharPosInSpan);
+    const textAfterInSpan = spanText.substring(commonActualCharPosInSpan + 1);
+
+    if (textBeforeInSpan) {
+      const sBefore = document.createElement('span');
+      sBefore.className = 'word-part'; sBefore.style.color = originalColor; sBefore.textContent = textBeforeInSpan;
+      parent.insertBefore(sBefore, nextSibling);
+    }
+
+    const ghostSpan = document.createElement('span');
+    ghostSpan.className = 'word-part';
+    ghostSpan.style.color = '#010214'; 
+    ghostSpan.textContent = commonActualCharValue;
+    parent.insertBefore(ghostSpan, nextSibling);
+
+    if (textAfterInSpan) {
+      const sAfter = document.createElement('span');
+      sAfter.className = 'word-part'; sAfter.style.color = originalColor; sAfter.textContent = textAfterInSpan;
+      parent.insertBefore(sAfter, nextSibling);
+    }
+    
+    // Calculate initialX based on ghostSpan position AFTER its insertion in DOM
+    const ghostRect = ghostSpan.getBoundingClientRect();
+    initialXOfBridgeLetterInContainer = ghostRect.left - containerRect.left;
+
+    // Create letter glass wrapper for the common letter
+    const wrapper = document.createElement('div');
+    wrapper.className = 'word-part common-letter letter-glass-wrapper';
+    wrapper.style.position = 'absolute';
+    wrapper.style.left = initialXOfBridgeLetterInContainer + 'px';
+    wrapper.style.top = '0px';
+    container.appendChild(wrapper);
+
+    // Layers: blur, sphere, highlight, shadow
+    const blurLayer = document.createElement('div');
+    blurLayer.className = 'letter-glass__blur';
+    wrapper.appendChild(blurLayer);
+
+    const sphereLayer = document.createElement('div');
+    sphereLayer.className = 'letter-glass__sphere';
+    wrapper.appendChild(sphereLayer);
+
+    const highlight = document.createElement('div');
+    highlight.className = 'letter-glass__highlight';
+    wrapper.appendChild(highlight);
+
+    const shadow = document.createElement('div');
+    shadow.className = 'letter-glass__shadow';
+    wrapper.appendChild(shadow);
+
+    // SVG letter shape
+    const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svgEl.setAttribute('width', wrapper.offsetWidth);
+    svgEl.setAttribute('height', wrapper.offsetHeight);
+    svgEl.style.position = 'absolute';
+    svgEl.style.top = '0';
+    svgEl.style.left = '0';
+    svgEl.style.pointerEvents = 'none';
+    svgEl.style.zIndex = '4';
+
+    const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    textEl.setAttribute('x', '50%');
+    textEl.setAttribute('y', '50%');
+    textEl.setAttribute('text-anchor', 'middle');
+    textEl.setAttribute('dominant-baseline', 'central');
+    textEl.setAttribute('font-family', 'Anton, sans-serif');
+    textEl.setAttribute('font-size', '200px');
+    textEl.setAttribute('font-weight', '500');
+    textEl.setAttribute('fill', originalColor);
+    textEl.textContent = commonActualCharValue;
+    svgEl.appendChild(textEl);
+    wrapper.appendChild(svgEl);
+
+    // Initialize liquid glass effect with Three.js, blur, and rim layers
+    wrapper.effectController = initLetterGlassEffect(wrapper, originalColor);
+
+    bridgeLetterElement = wrapper;
+
+    targetXOfBridgeLetterInContainer = calculateLetterPosition(newWordObj.text, positionInWord2);
+    const deltaX = targetXOfBridgeLetterInContainer - initialXOfBridgeLetterInContainer;
+
+    // bridgeLetterElement is already created, positioned absolutely and not moving (transform not yet applied)
+    // partsToFadeOut will disappear UNDER it (if z-index is set) or beside it.
+    const partsToFadeOut = Array.from(container.childNodes).filter(
+        node => node.nodeType === 1 && node.classList.contains('word-part') && !node.classList.contains('common-letter')
+    );
+    
+    requestAnimationFrame(() => { // Wrap adding class in requestAnimationFrame
+      partsToFadeOut.forEach(part => part.classList.add('fading-out'));
+    });
+
+    // Stage 1: Wait for fadeOut of old word to complete (250 ms)
+    // bridgeLetterElement (absolute, static transform) remains visible
+    setTimeout(() => {
+      // Stage 1.5: Pause 150ms. bridgeLetterElement is still static.
+      setTimeout(() => {
+        bridgeLetterElement.style.transform = `translateX(${deltaX}px)`; // Start CSS animation for 450ms
+
+        partsToFadeOut.forEach(part => {
+          if (part.parentNode) part.parentNode.removeChild(part);
+        });
+        // Additional cleanup, if text nodes etc. remain
+        Array.from(container.childNodes).forEach(node => {
+          if (node !== bridgeLetterElement) {
+            container.removeChild(node);
+          }
+        });
+
+        // Stage 2: Show new word immediately when letter starts moving
+        setTimeout(() => {
+          const before2Text = newWordObj.text.substring(0, positionInWord2);
+          const commonCharInNewWord = newWordObj.text.charAt(positionInWord2);
+          const after2Text = newWordObj.text.substring(positionInWord2 + 1);
+          
+          const fragmentForNewParts = document.createDocumentFragment();
+
+          if (before2Text.trim() !== '') {
+            const beforeSpan = document.createElement('span');
+            beforeSpan.className = 'word-part fading-in';
+            beforeSpan.style.color = newWordObj.color;
+            beforeSpan.textContent = before2Text;
+            fragmentForNewParts.appendChild(beforeSpan);
+          }
+          
+          const placeholderSpan = document.createElement('span');
+          placeholderSpan.className = 'word-part common-letter-placeholder fading-in';
+          placeholderSpan.style.color = '#010214'; 
+          placeholderSpan.textContent = commonCharInNewWord;
+          fragmentForNewParts.appendChild(placeholderSpan);
+
+          if (after2Text.trim() !== '') {
+            const afterSpan = document.createElement('span');
+            afterSpan.className = 'word-part fading-in';
+            afterSpan.style.color = newWordObj.color;
+            afterSpan.textContent = after2Text;
+            fragmentForNewParts.appendChild(afterSpan);
+          }
+          container.appendChild(fragmentForNewParts);
+        }, 0); // Show new word immediately when letter starts moving
+
+        // Stage 3: Completion for bridgeLetterElement (synchronized with its transform animation)
+        // Transform animation now lasts 800ms. Add small buffer.
+        setTimeout(() => {
+          const allNewPartsInContainer = container.querySelectorAll('.word-part:not(.common-letter-placeholder)');
+          allNewPartsInContainer.forEach(part => {
+              part.classList.remove('fading-in');
+          });
+          
+          const placeholderToReplace = container.querySelector('.common-letter-placeholder');
+          
+          if (bridgeLetterElement) {
+            // Clean up liquid glass effect
+            if (bridgeLetterElement.effectController) {
+              bridgeLetterElement.effectController.stop();
+            }
+            bridgeLetterElement.classList.remove('common-letter--glass');
+            const glassCanvas = bridgeLetterElement.querySelector('canvas');
+            if (glassCanvas) {
+              bridgeLetterElement.removeChild(glassCanvas);
+            }
+            const glassSVG = bridgeLetterElement.querySelector('svg');
+            if (glassSVG) {
+              bridgeLetterElement.removeChild(glassSVG);
+            }
+            
+            bridgeLetterElement.style.transform = ''; 
+            bridgeLetterElement.style.position = 'relative';
+            bridgeLetterElement.style.left = '';
+            bridgeLetterElement.style.top = '';
+            bridgeLetterElement.style.color = newWordObj.color; // Restore original color
+            bridgeLetterElement.classList.remove('common-letter');
+
+            if (placeholderToReplace) {
+              placeholderToReplace.classList.remove('fading-in'); 
+              container.replaceChild(bridgeLetterElement, placeholderToReplace);
+            } else {
+              console.warn("Common letter placeholder not found for replacement. Reverting to insertion logic.");
+              const newChildNodes = Array.from(container.childNodes).filter(n => n !== bridgeLetterElement && n.nodeType === 1);
+              let inserted = false;
+              if (positionInWord2 === 0) {
+                  if(container.firstChild !== bridgeLetterElement) container.insertBefore(bridgeLetterElement, container.firstChild);
+                  inserted = true;
+              } else if (positionInWord2 <= newChildNodes.length) {
+                  const nodeToInsertBefore = newChildNodes.find((node, index) => index === positionInWord2);
+                  if (nodeToInsertBefore && nodeToInsertBefore !== bridgeLetterElement) {
+                       container.insertBefore(bridgeLetterElement, nodeToInsertBefore);
+                       inserted = true;
+                  } else if (!bridgeLetterElement.parentNode) {
+                      container.appendChild(bridgeLetterElement);
+                      inserted = true;
+                  }
+              }
+              if (!inserted && !bridgeLetterElement.parentNode) { 
+                  container.appendChild(bridgeLetterElement);
+              }
+            }
+          }
+          const finalDisplaySafetyBuffer = 15; // New buffer for static display
+          if (container.scrollWidth > 0) { // Make sure scrollWidth has reasonable value
+            container.style.width = container.scrollWidth + finalDisplaySafetyBuffer + 'px';
+          } else {
+            // Fallback if scrollWidth is 0 (unlikely, but for reliability)
+            // Try to recalculate width based on new word text
+            const tempSpan = document.createElement('span');
+            tempSpan.style.fontFamily = 'Anton, sans-serif';
+            tempSpan.style.fontSize = '200px';
+            tempSpan.style.letterSpacing = '-4px';
+            tempSpan.style.whiteSpace = 'nowrap';
+            tempSpan.style.visibility = 'hidden';
+            tempSpan.style.position = 'absolute';
+            tempSpan.textContent = newWordObj.text; 
+            document.body.appendChild(tempSpan);
+            const fallbackWidth = tempSpan.getBoundingClientRect().width;
+            document.body.removeChild(tempSpan);
+            container.style.width = fallbackWidth + finalDisplaySafetyBuffer + 'px';
+          }
+        }, 800 + 50); // Transform duration + buffer.
+
+      }, 150); // 150ms pause after old word fade out
+
+    }, 250); // 250ms for fadeOut of old word
+
+  } else {
+    const allCurrentParts = container.querySelectorAll('.word-part');
+    allCurrentParts.forEach(part => part.classList.add('fading-out'));
+    setTimeout(() => {
+      container.innerHTML = `<span class="word-part fading-in" style="color: ${newWordObj.color};">${newWordObj.text}</span>`;
+      setTimeout(() => {
+        const newWordEl = container.querySelector('.word-part.fading-in');
+        if (newWordEl) newWordEl.classList.remove('fading-in');
+        container.style.width = 'auto';
+      }, 270); 
+    }, 250); 
+  }
+}
+
+/**
+ * Main function for changing words.
+ * Gets the current and next word, starts the transition animation.
+ * Updates information about the "landed" letter for the next cycle.
+ * Sets timer for the next word change.
+ */
+async function changeWord() {
+  const currentWordObject = actionWords[currentWordIndex];
+  const currentWordBaseColor = currentWordObject.color;
+
+  // Get next word and the common letter info (which respects exclusions)
+  const selectionResult = getRandomWordWithCommonLetter(currentWordObject.text, currentWordBaseColor, lastLandedBridgeInfo);
+  const nextWordObject = selectionResult.word;
+  const commonLetterInfoForThisTransition = selectionResult.commonInfo;
+
+  if (!nextWordObject) {
+    // This case should ideally be handled by fallbacks in getRandomWordWithCommonLetter
+    console.error("Critical: getRandomWordWithCommonLetter did not return a word. Resetting or retrying.");
+    currentWordIndex = (currentWordIndex + 1) % actionWords.length; // Simple fallback
+    lastLandedBridgeInfo = null;
+    setTimeout(changeWord, 1500);
+    return;
+  }
+
+  // Animate the transition using the determined commonLetterInfo (or null if none)
+  await animateWordTransition(currentWordObject, nextWordObject, commonLetterInfoForThisTransition, currentWordBaseColor);
+
+  // Update lastLandedBridgeInfo for the *next* cycle based on the transition that just happened
+  if (commonLetterInfoForThisTransition) {
+    lastLandedBridgeInfo = {
+      char: commonLetterInfoForThisTransition.letter, // Already uppercase from findCommonLetters
+      indexInCurrentWord: commonLetterInfoForThisTransition.positionInWord2 // This is index in newWordObject.text
+    };
+  } else {
+    lastLandedBridgeInfo = null;
+  }
+
+  // Update currentWordIndex to the new word
+  const newIndex = actionWords.findIndex(w => w.text === nextWordObject.text);
+  if (newIndex === -1) {
+      console.error(`Could not find ${nextWordObject.text} in actionWords array. Resetting to 0.`);
+      currentWordIndex = 0;
+      lastLandedBridgeInfo = null; // Reset if index is messed up
+  } else {
+      currentWordIndex = newIndex;
+  }
+  
+  // Interval until next word change in this iframe.
+  // Calculated for synchronization with other iframe (something.html).
+  const nextInterval = 3000;
+  setTimeout(changeWord, nextInterval);
+}
+
+// Initial delay before first word change in this iframe.
+// "DESIGN" should change second, after "SOMETHING" and a pause.
+const initialInterval = 3000;
+setTimeout(changeWord, initialInterval);
+</script>
