@@ -182,6 +182,7 @@ const SupportStyles = () => (
           transition: none !important;
           font-family: "Lato", Arial, sans-serif !important;
           text-decoration: none !important;
+          box-sizing: border-box !important;
       }
 
       .support-component .order-btn:hover {
@@ -216,6 +217,9 @@ const SupportStyles = () => (
               margin-top: 8px !important;
               padding: 10px 20px !important;
               font-size: 14px !important;
+              width: 100% !important;
+              display: block !important;
+              box-sizing: border-box !important;
           }
       }
     `}
@@ -281,8 +285,24 @@ const Support = () => {
 
     if (!button || !card || !container) return;
 
-    // Set minimum width for the card
-    const minWidth = Math.max(320, button.offsetWidth);
+    // Calculate minimum width considering both button and CTA button
+    const ctaButtonForMeasurement = card.querySelector('.order-btn');
+    let minWidth = Math.max(320, button.offsetWidth);
+    
+    if (ctaButtonForMeasurement) {
+      // Temporarily set CTA button to auto width to measure its natural width
+      ctaButtonForMeasurement.style.setProperty('width', 'auto', 'important');
+      
+      // Force reflow to get accurate measurement
+      ctaButtonForMeasurement.offsetWidth;
+      
+      const ctaButtonWidth = ctaButtonForMeasurement.offsetWidth + 64; // Add padding from card (32px * 2)
+      minWidth = Math.max(minWidth, ctaButtonWidth);
+      
+      // Reset CTA button to full width
+      ctaButtonForMeasurement.style.setProperty('width', '100%', 'important');
+    }
+    
     card.style.setProperty('min-width', `${minWidth}px`, 'important');
 
     // Position the card

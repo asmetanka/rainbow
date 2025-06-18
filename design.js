@@ -61,6 +61,7 @@ const DesignStyles = () => (
         display: flex;
         align-items: flex-start;
         justify-content: flex-start;
+        margin-top: 2px;
       }
 
       .hero-word-container {
